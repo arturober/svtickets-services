@@ -1,7 +1,7 @@
 import { Entity, PrimaryKey, Property } from '@mikro-orm/core';
 import { Inject, Request } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
-import { Exclude, Transform } from 'class-transformer';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class User {
