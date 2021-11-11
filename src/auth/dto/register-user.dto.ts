@@ -32,6 +32,7 @@ export class RegisterUserDto {
 
   @IsString()
   @IsNotEmpty()
+  @Transform((p) => (p.value.startsWith('http') ? '' : p.value))
   avatar: string;
 
   @IsNumber()
