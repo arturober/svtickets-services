@@ -24,9 +24,9 @@ export class RegisterUserDto {
   @IsString()
   @IsNotEmpty()
   @Transform((p) =>
-    p
+    p.value
       ? crypto.createHash('sha256').update(p.value, 'utf-8').digest('base64')
-      : null
+      : ''
   )
   password: string;
 
