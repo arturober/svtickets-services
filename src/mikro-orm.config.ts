@@ -7,8 +7,8 @@ export default {
   // entitiesTs: ['src/entities'],
   dbName: 'svtickets',
   type: 'mariadb', // one of `mongo` | `mysql` | `mariadb` | `postgresql` | `sqlite`
-  user: 'root',
-  password: '',
+  user: 'example',
+  password: 'example',
   port: 3306,
   host: 'arturober.com',
   debug: true,

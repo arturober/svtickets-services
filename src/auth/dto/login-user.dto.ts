@@ -16,7 +16,9 @@ export class LoginUserDto {
   @IsString()
   @IsNotEmpty()
   @Transform((p) =>
-    p.value && typeof p.value === 'string' ? crypto.createHash('sha256').update(p.value, 'utf-8').digest('base64') : null
+    p.value && typeof p.value === 'string'
+      ? crypto.createHash('sha256').update(p.value, 'utf-8').digest('base64')
+      : null
   )
   readonly password: string;
 
