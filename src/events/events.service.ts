@@ -1,4 +1,4 @@
-import { EntityRepository } from '@mikro-orm/core';
+import { EntityRepository, QueryOrder } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import {
   BadRequestException,
@@ -13,6 +13,8 @@ import { Event } from '../entities/Event';
 import { EventsRepository } from './events.repository';
 import { User } from 'src/entities/User';
 import { UserAttendEvent } from 'src/entities/UserAttendEvent';
+import { UserCommentEvent } from 'src/entities/UserCommentEvent';
+import { CreateCommentDto } from './dto/create-comment.dto';
 
 @Injectable()
 export class EventsService {
@@ -21,6 +23,8 @@ export class EventsService {
     private readonly eventRepository: EventsRepository,
     @InjectRepository(UserAttendEvent)
     private readonly attendRepository: EntityRepository<UserAttendEvent>,
+    @InjectRepository(UserCommentEvent)
+    private readonly commentRepository: EntityRepository<UserCommentEvent>,
     private readonly imageService: ImageService
   ) {}
 
@@ -98,7 +102,7 @@ export class EventsService {
     await this.eventRepository.removeAndFlush(event);
   }
 
-  async getAttendees(id) {
+  async getAttendees(id: number) {
     const attends = await this.attendRepository.find(
       { event: id },
       { populate: ['user'] }
@@ -106,7 +110,7 @@ export class EventsService {
     return attends.map((a) => a.user);
   }
 
-  async postAttend(id, authUser: User) {
+  async postAttend(id: number, authUser: User) {
     const attend = await this.attendRepository.findOne({
       user: authUser.id,
       event: id,
@@ -128,7 +132,7 @@ export class EventsService {
     return { tickets: newAttend.tickets };
   }
 
-  async deleteAttend(id, authUser: User) {
+  async deleteAttend(id: number, authUser: User) {
     const attend = await this.attendRepository.findOne({
       user: authUser.id,
       event: id,
@@ -139,5 +143,34 @@ export class EventsService {
     }
 
     await this.attendRepository.removeAndFlush(attend);
+  }
+
+  async getComments(id: number) {
+    const comments = await this.commentRepository.find(
+      { attendEvent: { event: id } },
+      { populate: ['attendEvent.user'], orderBy: { date: QueryOrder.DESC } }
+    );
+    return comments;
+  }
+
+  async postComment(id: number, authUser: User, commentDto: CreateCommentDto) {
+    const attend = await this.attendRepository.findOne({
+      user: authUser.id,
+      event: id,
+    });
+
+    if (!attend) {
+      throw new BadRequestException(
+        "You can't comment on a event you are not attending to"
+      );
+    }
+
+    const comment = new UserCommentEvent();
+    comment.comment = commentDto.comment;
+    comment.attendEvent = attend;
+
+    await this.commentRepository.persistAndFlush(comment);
+    comment.date = new Date();
+    return comment;
   }
 }

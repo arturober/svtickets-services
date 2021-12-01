@@ -3,29 +3,24 @@ import {
   Index,
   ManyToOne,
   PrimaryKey,
+  PrimaryKeyType,
   Property,
 } from '@mikro-orm/core';
+import { User } from './User';
 import { UserAttendEvent } from './UserAttendEvent';
 
 @Entity()
-@Index({ name: 'event', properties: ['event', 'user'] })
+// @Index({ name: 'attendEvent', properties: ['event', 'user'] })
 export class UserCommentEvent {
   @PrimaryKey()
   id!: number;
 
   @ManyToOne({
     entity: () => UserAttendEvent,
-    fieldName: 'event',
+    fieldNames: ['user', 'event'],
     onDelete: 'cascade',
   })
-  event!: UserAttendEvent;
-
-  @ManyToOne({
-    entity: () => UserAttendEvent,
-    fieldName: 'user',
-    onDelete: 'cascade',
-  })
-  user!: UserAttendEvent;
+  attendEvent!: UserAttendEvent;
 
   @Property({ length: 2000 })
   comment!: string;

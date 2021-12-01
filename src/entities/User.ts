@@ -33,6 +33,4 @@ export class User {
 
   @Property({ persist: false })
   me?: boolean;
-
-  constructor(@Inject(REQUEST) private request: Request) {}
 }

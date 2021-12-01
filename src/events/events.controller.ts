@@ -18,6 +18,9 @@ import { EventSingleInterceptor } from './interceptors/event-single.interceptor'
 import { User } from 'src/entities/User';
 import { AuthUser } from 'src/auth/decorators/user.decorator';
 import { UserListInterceptor } from 'src/users/interceptors/user-list.interceptor';
+import { CommentListInterceptor } from './interceptors/comment-list.interceptor';
+import { CreateCommentDto } from './dto/create-comment.dto';
+import { CommentSingleInterceptor } from './interceptors/comment-single.interceptor';
 
 @Controller('events')
 export class EventsController {
@@ -65,18 +68,34 @@ export class EventsController {
 
   @Get(':id/attend')
   @UseInterceptors(UserListInterceptor, ClassSerializerInterceptor)
-  getAttendees(@Param('id') id: string) {
+  getAttendees(@Param('id') id: number) {
     return this.eventsService.getAttendees(id);
   }
 
   @Post(':id/attend')
-  postAttend(@Param('id') id: string, @AuthUser() authUser: User) {
+  postAttend(@Param('id') id: number, @AuthUser() authUser: User) {
     return this.eventsService.postAttend(id, authUser);
   }
 
   @Delete(':id/attend')
   @HttpCode(204)
-  deleteAttend(@Param('id') id: string, @AuthUser() authUser: User) {
+  deleteAttend(@Param('id') id: number, @AuthUser() authUser: User) {
     return this.eventsService.deleteAttend(id, authUser);
+  }
+
+  @Get(':id/comments')
+  @UseInterceptors(CommentListInterceptor, ClassSerializerInterceptor)
+  getComments(@Param('id') id: number) {
+    return this.eventsService.getComments(id);
+  }
+
+  @Post(':id/comments')
+  @UseInterceptors(CommentSingleInterceptor, ClassSerializerInterceptor)
+  postComment(
+    @Param('id') id: number,
+    @AuthUser() authUser: User,
+    @Body() commentDto: CreateCommentDto
+  ) {
+    return this.eventsService.postComment(id, authUser, commentDto);
   }
 }

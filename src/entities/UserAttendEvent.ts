@@ -1,4 +1,4 @@
-import { Entity, ManyToOne, Property } from '@mikro-orm/core';
+import { Entity, ManyToOne, PrimaryKeyType, Property } from '@mikro-orm/core';
 import { Event } from './Event';
 import { User } from './User';
 
@@ -22,6 +22,8 @@ export class UserAttendEvent {
     index: 'user_attend_event_ibfk_2',
   })
   event!: Event;
+
+  [PrimaryKeyType]: [number, number];
 
   @Property({ columnType: 'smallint' })
   tickets = 1;
