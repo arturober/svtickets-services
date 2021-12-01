@@ -1,5 +1,4 @@
-import { ConnectionOptions, EntityManager } from '@mikro-orm/core';
-import { AsyncLocalStorage } from 'async_hooks';
+import { ConnectionOptions } from '@mikro-orm/core';
 // const storage = new AsyncLocalStorage<EntityManager>();
 
 export default {
