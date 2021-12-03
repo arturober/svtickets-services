@@ -1,9 +1,7 @@
 import { ConnectionOptions } from '@mikro-orm/core';
-// const storage = new AsyncLocalStorage<EntityManager>();
 
 export default {
   entities: ['dist/entities'], // compiled JS files
-  // entitiesTs: ['src/entities'],
   dbName: 'svtickets',
   type: 'mariadb', // one of `mongo` | `mysql` | `mariadb` | `postgresql` | `sqlite`
   user: 'example',
@@ -11,6 +9,4 @@ export default {
   port: 3306,
   host: 'arturober.com',
   debug: true,
-  // registerRequestContext: false, // disable automatic middleware
-  // context: () => storage.getStore(), // use our AsyncLocalStorage instance
 } as ConnectionOptions;
