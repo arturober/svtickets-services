@@ -9,6 +9,10 @@ import {
   UseInterceptors,
   HttpCode,
   ClassSerializerInterceptor,
+  Query,
+  ParseIntPipe,
+  Optional,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -40,59 +44,77 @@ export class EventsController {
 
   @Get()
   @UseInterceptors(EventListInterceptor, ClassSerializerInterceptor)
-  findAll(@AuthUser() authUser: User) {
-    return this.eventsService.findAll(authUser);
+  findAll(
+    @AuthUser() authUser: User,
+    @Query('creator', new DefaultValuePipe(0), ParseIntPipe)
+    creator?: number,
+    @Query('attending', new DefaultValuePipe(0), ParseIntPipe)
+    attending?: number
+  ) {
+    if (creator) {
+      return this.eventsService.findByUserCreator(authUser, creator);
+    } else if (attending) {
+      return this.eventsService.findByUserAttend(authUser, attending);
+    } else {
+      return this.eventsService.findAll(authUser);
+    }
   }
 
   @Get(':id')
   @UseInterceptors(EventSingleInterceptor, ClassSerializerInterceptor)
-  findOne(@Param('id') id: string, @AuthUser() authUser: User) {
-    return this.eventsService.findOne(+id, authUser);
+  findOne(@Param('id', ParseIntPipe) id: number, @AuthUser() authUser: User) {
+    return this.eventsService.findOne(id, authUser);
   }
 
   @Put(':id')
   @UseInterceptors(EventSingleInterceptor, ClassSerializerInterceptor)
   update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateEventDto: UpdateEventDto,
     @AuthUser() authUser: User
   ) {
-    return this.eventsService.update(+id, updateEventDto, authUser);
+    return this.eventsService.update(id, updateEventDto, authUser);
   }
 
   @Delete(':id')
   @HttpCode(204)
-  remove(@Param('id') id: string, @AuthUser() authUser: User) {
-    return this.eventsService.remove(+id, authUser);
+  remove(@Param('id', ParseIntPipe) id: number, @AuthUser() authUser: User) {
+    return this.eventsService.remove(id, authUser);
   }
 
   @Get(':id/attend')
   @UseInterceptors(UserListInterceptor, ClassSerializerInterceptor)
-  getAttendees(@Param('id') id: number) {
+  getAttendees(@Param('id', ParseIntPipe) id: number) {
     return this.eventsService.getAttendees(id);
   }
 
   @Post(':id/attend')
-  postAttend(@Param('id') id: number, @AuthUser() authUser: User) {
+  postAttend(
+    @Param('id', ParseIntPipe) id: number,
+    @AuthUser() authUser: User
+  ) {
     return this.eventsService.postAttend(id, authUser);
   }
 
   @Delete(':id/attend')
   @HttpCode(204)
-  deleteAttend(@Param('id') id: number, @AuthUser() authUser: User) {
+  deleteAttend(
+    @Param('id', ParseIntPipe) id: number,
+    @AuthUser() authUser: User
+  ) {
     return this.eventsService.deleteAttend(id, authUser);
   }
 
   @Get(':id/comments')
   @UseInterceptors(CommentListInterceptor, ClassSerializerInterceptor)
-  getComments(@Param('id') id: number) {
+  getComments(@Param('id', ParseIntPipe) id: number) {
     return this.eventsService.getComments(id);
   }
 
   @Post(':id/comments')
   @UseInterceptors(CommentSingleInterceptor, ClassSerializerInterceptor)
   postComment(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @AuthUser() authUser: User,
     @Body() commentDto: CreateCommentDto
   ) {

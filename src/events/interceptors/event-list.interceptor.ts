@@ -16,6 +16,9 @@ export class EventListInterceptor implements NestInterceptor {
       map((events: Event[]) => {
         return {
           events: events.map((e) => {
+            if (!e.usersAttend.isInitialized) {
+              delete e.usersAttend;
+            }
             e.image = e.image && baseUrl + e.image;
             e.mine = e.creator.id === req.user.id;
             if (e.creator?.avatar) {

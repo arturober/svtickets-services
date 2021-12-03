@@ -1,6 +1,14 @@
-import { Entity, ManyToOne, PrimaryKey, Property } from '@mikro-orm/core';
+import {
+  Collection,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryKey,
+  Property,
+} from '@mikro-orm/core';
 import { CreateEventDto } from 'src/events/dto/create-event.dto';
 import { User } from './User';
+import { UserAttendEvent } from './UserAttendEvent';
 
 @Entity()
 export class Event {
@@ -15,6 +23,9 @@ export class Event {
     index: 'creator',
   })
   creator!: User;
+
+  @OneToMany('UserAttendEvent', 'event')
+  usersAttend = new Collection<UserAttendEvent>(this);
 
   @Property({ length: 300 })
   title!: string;

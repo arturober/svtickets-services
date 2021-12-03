@@ -64,6 +64,24 @@ export class EventsService {
     );
   }
 
+  async findByUserCreator(authUser: User, idUser: number) {
+    return this.eventRepository.findByDistance(
+      authUser.lat,
+      authUser.lng,
+      authUser.id,
+      { creator: idUser }
+    );
+  }
+
+  async findByUserAttend(authUser: User, idUser: number) {
+    return this.eventRepository.findByDistance(
+      authUser.lat,
+      authUser.lng,
+      authUser.id,
+      { usersAttend: { user: idUser } }
+    );
+  }
+
   async findOne(id: number, authUser: User) {
     const event = await this.eventRepository.findById(
       id,

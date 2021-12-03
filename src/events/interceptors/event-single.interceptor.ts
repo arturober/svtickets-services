@@ -14,6 +14,9 @@ export class EventSingleInterceptor implements NestInterceptor {
     const baseUrl = req.protocol + '://' + req.headers.host + '/';
     return next.handle().pipe(
       map((e: Event) => {
+        if (!e.usersAttend.isInitialized) {
+          delete e.usersAttend;
+        }
         e.image = e.image && baseUrl + e.image;
         e.mine = e.creator.id === req.user.id;
         if (e.creator?.avatar) {
