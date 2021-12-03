@@ -41,13 +41,13 @@
     - [**GET /events?attending={id}**](#get-eventsattendingid)
     - [**GET /events/:id**](#get-eventsid)
     - [**POST /events**](#post-events)
-    - [**DELETE /products/:id**](#delete-productsid)
-    - [**PUT /products/:id**](#put-productsid)
-    - [**PUT /products/:id/buy**](#put-productsidbuy)
-    - [**POST /products/:id/bookmarks**](#post-productsidbookmarks)
-    - [**DELETE /products/:id/bookmarks**](#delete-productsidbookmarks)
-    - [**POST /products/:id/photos**](#post-productsidphotos)
-    - [**DELETE /products/:id/photos/:idPhoto**](#delete-productsidphotosidphoto)
+    - [**DELETE /events/:id**](#delete-eventsid)
+    - [**PUT /events/:id**](#put-eventsid)
+    - [**PUT /events/:id/buy**](#put-eventsidbuy)
+    - [**POST /events/:id/bookmarks**](#post-eventsidbookmarks)
+    - [**DELETE /events/:id/bookmarks**](#delete-eventsidbookmarks)
+    - [**POST /events/:id/photos**](#post-eventsidphotos)
+    - [**DELETE /events/:id/photos/:idPhoto**](#delete-eventsidphotosidphoto)
   - [Colección /users](#colección-users)
     - [**GET /users/me**](#get-usersme)
     - [**GET /users/:id**](#get-usersid)
@@ -273,7 +273,7 @@ Igual que el servicio **/events** pero devuelve los eventos a los que asiste el 
 
 Devuelve los datos del evento cuya id se recibe en la url.
 
-Ejemplo de respuesta de la llamada a **/products/2186**:
+Ejemplo de respuesta de la llamada a **/events/2186**:
 
 ```json
 {
@@ -368,84 +368,56 @@ Si algún campo no tuviera un formato correcto o no estuviera presente, el servi
 {
     "statusCode": 400,
     "message": [
-        "category should not be empty",
-        "category must be an integer number",
-        "price should not be empty",
-        "price must be a number conforming to the specified constraints",
-        "mainPhoto should not be empty",
-        "mainPhoto must be a string"
+        "title should not be empty",
+        "title must be a string",
+        "lat should not be empty",
+        "lat must be a number conforming to the specified constraints",
+        "lng should not be empty",
+        "lng must be a number conforming to the specified constraints",
+        "address should not be empty",
+        "address must be a string"
     ],
     "error": "Bad Request"
 }
 ```
 
-### **DELETE /products/:id**
+### **DELETE /events/:id**
 
-Este servicio borra el producto cuya id se especifica en la url. Devuelve una respuesta vacía **204** si el producto se ha borrado, o un error 404 si intentamos borrar un producto que no existe.
+Este servicio borra el evento cuya id se especifica en la url. Devuelve una respuesta vacía **204** si el evento se ha borrado, o un error 404 si intentamos borrar un evento que no existe.
 
-En caso de intentar borrar un producto que no es nuestro, nos responderá con un error **403** (Forbidden):
+En caso de intentar borrar un evento que no es nuestro, nos responderá con un error **403** (Forbidden):
 
 ```json
 {
     "statusCode": 403,
-    "message": "You can't edit or delete other user's products",
+    "message": "This is not your event",
     "error": "Forbidden"
 }
 ```
 
-### **PUT /products/:id**
+### **PUT /events/:id**
 
-Similar al servicio de añadir producto pero para editar un producto existente. En la url se debe especificar la id del producto que vamos a modificar. Todos los campos a editar son opcionales, es decir, se solo se cambiará la información enviada en la base de datos.
+Similar al servicio de añadir evento pero para editar un evento existente. En la url se debe especificar la id del evento que vamos a modificar. Todos los campos a editar son opcionales, es decir, se solo se modificarán los campos enviados. También se pueden enviar todos los campos, simplemente dejando los que no cambien con su valor original.
 
-A continuación vamos a ver 3 posibilidades para editar la información de un producto.
+La respuesta de este servicio será el evento actualizado, igual que el servicio de insertar evento. Se pueden producir errores del tipo **400** si algún campo es erróneo, **404** si el evento a editar no existe, o **403** si intentamos editar un evento que no es nuestro.
 
-1. Modificar información básica del producto (como añadir pero sin la foto). La categoría al igual que al añadir, debe enviarse como número (id de la nueva categoría).
+### **PUT /events/:id/buy**
 
-```json
-{
-    "title": "Test product Updated",
-    "description": "Product with\n2 lines and more",
-    "category": 2,
-    "price": 43
-}
-```
+Este servicio se llama cuando el usuario autenticado quiere comprar el evento cuya id se especifica en la url. El cuerpo de la petición en este caso estará **vacío**. Automáticamente se pondrá el estado del evento a 3 (vendido) y se asociará el usuario autenticado como comprador.
 
-2. Cambiar el estado de un producto. La propiedad **status** indica: 1 - en venta, 2 - reservado, 3 - vendido. A la hora de cambiar el estado de un producto a "vendido", se deberá enviar también la id del usuario al que se le ha vendido (propiedad **soldTo**). Ejemplo:
+El servidor responderá también sin datos (**204**) si todo ha ido bien, o con un error, como por ejemplo 404 si el evento no existe.
 
-```json
-{
-    "status": 3,
-    "soldTo": 1
-}
-```
+### **POST /events/:id/bookmarks**
 
-3. Finalmente, también se puede usar este servicio para establecer una nueva foto principal para el producto. Enviando como valor de la propiedad **mainPhoto**, la id de una de las imagénes que tenga el producto asociadas.
+Este servicio añade el evento cuya id se pasa por parámetro, a la lista de favoritos del usuario autenticado. No se envía ningún dato con la petición y la respuesta igualmente será vacía (**204**) si todo ha ido correctamente.
 
-```json
-{
-    "mainPhoto": 204
-}
-```
+### **DELETE /events/:id/bookmarks**
 
-La respuesta de este servicio será el producto actualizado, igual que el servicio de insertar producto. Se pueden producir errores del tipo **400** si algún campo es erróneo, **404** si el producto a editar no existe, o **403** si intentamos editar un producto que no es nuestro.
+Borra el evento especificado de la lista de favoritos del usuario autenticado. La respuesta estará vacía (**204**) si no se produce ningún error.
 
-### **PUT /products/:id/buy**
+### **POST /events/:id/photos**
 
-Este servicio se llama cuando el usuario autenticado quiere comprar el producto cuya id se especifica en la url. El cuerpo de la petición en este caso estará **vacío**. Automáticamente se pondrá el estado del producto a 3 (vendido) y se asociará el usuario autenticado como comprador.
-
-El servidor responderá también sin datos (**204**) si todo ha ido bien, o con un error, como por ejemplo 404 si el producto no existe.
-
-### **POST /products/:id/bookmarks**
-
-Este servicio añade el producto cuya id se pasa por parámetro, a la lista de favoritos del usuario autenticado. No se envía ningún dato con la petición y la respuesta igualmente será vacía (**204**) si todo ha ido correctamente.
-
-### **DELETE /products/:id/bookmarks**
-
-Borra el producto especificado de la lista de favoritos del usuario autenticado. La respuesta estará vacía (**204**) si no se produce ningún error.
-
-### **POST /products/:id/photos**
-
-Añade una imagen al producto cuya id se envía en la url (los productos pueden tener varias imágenes asociadas). El cuerpo de la petición será la imagen en formato base64. Adicionalmente se puede enviar el campo setMain: true, para que además de añadir la imagen, la asocie como imagen principal del producto.
+Añade una imagen al evento cuya id se envía en la url (los eventos pueden tener varias imágenes asociadas). El cuerpo de la petición será la imagen en formato base64. Adicionalmente se puede enviar el campo setMain: true, para que además de añadir la imagen, la asocie como imagen principal del evento.
 
 ```json
 {
@@ -454,22 +426,22 @@ Añade una imagen al producto cuya id se envía en la url (los productos pueden 
 }
 ```
 
-La respuesta del servidor será la foto añadida, con la id y url generadas. O un error como 404 si el producto no existe.
+La respuesta del servidor será la foto añadida, con la id y url generadas. O un error como 404 si el evento no existe.
 
 ```json
 {
     "photo": {
-        "url": "http://SERVER/img/products/1609348722463.jpg",
+        "url": "http://SERVER/img/events/1609348722463.jpg",
         "id": 439
     }
 }
 ```
 
-### **DELETE /products/:id/photos/:idPhoto**
+### **DELETE /events/:id/photos/:idPhoto**
 
-Este servicio borra la foto del producto especificado en la url (:id). Además, se especifica la id de la foto que se borrará (:idPhoto).
+Este servicio borra la foto del evento especificado en la url (:id). Además, se especifica la id de la foto que se borrará (:idPhoto).
 
-El servidor devolverá una respuesta vacía si todo va bien, o un código de error como **404** si el producto no existe o la foto a borrar no pertenece al producto especificado. Si intentamos borrar una foto de un producto que no sea nuestro, nos responderá con un error **403**.
+El servidor devolverá una respuesta vacía si todo va bien, o un código de error como **404** si el evento no existe o la foto a borrar no pertenece al evento especificado. Si intentamos borrar una foto de un evento que no sea nuestro, nos responderá con un error **403**.
 
 ## Colección /users
 
@@ -599,7 +571,7 @@ Todos los servicios de esta colección requieren del token de autenticación.
 
 ### **POST /ratings**
 
-Llamamos a este servicio para puntuar una transacción de algún producto que hayamos comprado o vendido. Debemos pasarle la id del producto, el comentario y una valoración del 1 al 5. Solo se puede valorar la transacción de un producto **una sola vez**.
+Llamamos a este servicio para puntuar una transacción de algún evento que hayamos comprado o vendido. Debemos pasarle la id del evento, el comentario y una valoración del 1 al 5. Solo se puede valorar la transacción de un evento **una sola vez**.
 
 Ejemplo de llamada:
 
@@ -607,17 +579,17 @@ Ejemplo de llamada:
 {
     "rating": 5,
     "comment": "Good buyer",
-    "product": 392
+    "event": 392
 }
 ```
 
 Si todo va bien, el servidor nos devolverá una respuesta vacía **204**.
 
-Si algún campo no está o no tiene un formato correcto, nos devolvería un error **400**, mientras que en caso de realizar una operación no permitida como comentar 2 veces el mismo producto, nos devolvería un error **403**.
+Si algún campo no está o no tiene un formato correcto, nos devolvería un error **400**, mientras que en caso de realizar una operación no permitida como comentar 2 veces el mismo evento, nos devolvería un error **403**.
 
 ### **GET /ratings/user/me**
 
-Devuelve un array con las puntuaciones recibidas por parte de otros usuarios en transacciones realizadas. Cada puntuación contendrá la información del producto, del usuario que nos ha valorado, la puntuación y el comentario.
+Devuelve un array con las puntuaciones recibidas por parte de otros usuarios en transacciones realizadas. Cada puntuación contendrá la información del evento, del usuario que nos ha valorado, la puntuación y el comentario.
 
 Ejemplo de respuesta:
 
@@ -625,7 +597,7 @@ Ejemplo de respuesta:
 {
     "ratings": [
         {
-            "product": {
+            "event": {
                 "id": 436,
                 "rating": 436,
                 "datePublished": "2020-12-17T16:22:18.000Z",

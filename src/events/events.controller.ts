@@ -13,6 +13,7 @@ import {
   ParseIntPipe,
   Optional,
   DefaultValuePipe,
+  ValidationPipe,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -33,7 +34,8 @@ export class EventsController {
   @Post()
   @UseInterceptors(EventSingleInterceptor, ClassSerializerInterceptor)
   async create(
-    @Body() createEventDto: CreateEventDto,
+    @Body(new ValidationPipe({ transform: true, whitelist: true }))
+    createEventDto: CreateEventDto,
     @AuthUser() authUser: User
   ) {
     const event = await this.eventsService.create(createEventDto, authUser);
@@ -66,12 +68,14 @@ export class EventsController {
 
   @Put(':id')
   @UseInterceptors(EventSingleInterceptor, ClassSerializerInterceptor)
-  update(
+  async update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateEventDto: UpdateEventDto,
+    @Body(new ValidationPipe({ transform: true, whitelist: true }))
+    updateEventDto: UpdateEventDto,
     @AuthUser() authUser: User
   ) {
-    return this.eventsService.update(id, updateEventDto, authUser);
+    await this.eventsService.update(id, updateEventDto, authUser);
+    return this.eventsService.findOne(id, authUser);
   }
 
   @Delete(':id')
@@ -114,7 +118,8 @@ export class EventsController {
   postComment(
     @Param('id', ParseIntPipe) id: number,
     @AuthUser() authUser: User,
-    @Body() commentDto: CreateCommentDto
+    @Body(new ValidationPipe({ transform: true, whitelist: true }))
+    commentDto: CreateCommentDto
   ) {
     return this.eventsService.postComment(id, authUser, commentDto);
   }

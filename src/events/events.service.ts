@@ -97,14 +97,10 @@ export class EventsService {
 
   async update(id: number, updateEventDto: UpdateEventDto, authUser: User) {
     const event = await this.getAndCheckEvent(authUser, id, ['creator']);
-    event.description = updateEventDto.description;
-    event.title = updateEventDto.title;
-    event.address = updateEventDto.address;
-    event.lat = updateEventDto.lat;
-    event.lng = updateEventDto.lng;
-    event.date = updateEventDto.date;
-    event.price = updateEventDto.price;
-    if (!updateEventDto.image.startsWith('http')) {
+    for (const prop in updateEventDto) {
+      event[prop] = updateEventDto[prop];
+    }
+    if (updateEventDto.image && !updateEventDto.image.startsWith('http')) {
       event.image = await this.imageService.saveImage(
         'events',
         updateEventDto.image
