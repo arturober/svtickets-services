@@ -24,7 +24,7 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-- [Servicios web applicación SanviPop](#servicios-web-applicación-sanvipop)
+- [Servicios web applicación SVTickets](#servicios-web-applicación-svtickets)
   - [Instalación de los servicios](#instalación-de-los-servicios)
   - [Configurando notificaciones Push](#configurando-notificaciones-push)
   - [Probando los servicios](#probando-los-servicios)
@@ -43,11 +43,11 @@
     - [**POST /events**](#post-events)
     - [**DELETE /events/:id**](#delete-eventsid)
     - [**PUT /events/:id**](#put-eventsid)
-    - [**PUT /events/:id/buy**](#put-eventsidbuy)
-    - [**POST /events/:id/bookmarks**](#post-eventsidbookmarks)
-    - [**DELETE /events/:id/bookmarks**](#delete-eventsidbookmarks)
-    - [**POST /events/:id/photos**](#post-eventsidphotos)
-    - [**DELETE /events/:id/photos/:idPhoto**](#delete-eventsidphotosidphoto)
+    - [**GET /events/:id/attend**](#get-eventsidattend)
+    - [**POST /events/:id/attend**](#post-eventsidattend)
+    - [**DELETE /events/:id/attend**](#delete-eventsidattend)
+    - [**GET /events/:id/comments**](#get-eventsidcomments)
+    - [**POST /events/:id/comments**](#post-eventsidcomments)
   - [Colección /users](#colección-users)
     - [**GET /users/me**](#get-usersme)
     - [**GET /users/:id**](#get-usersid)
@@ -55,12 +55,8 @@
     - [**PUT /users/me**](#put-usersme)
     - [**PUT /users/me/photo**](#put-usersmephoto)
     - [**PUT /users/me/password**](#put-usersmepassword)
-  - [Colección /ratings](#colección-ratings)
-    - [**POST /ratings**](#post-ratings)
-    - [**GET /ratings/user/me**](#get-ratingsuserme)
-    - [**GET /ratings/user/:id**](#get-ratingsuserid)
 
-# Servicios web applicación SanviPop
+# Servicios web applicación SVTickets
 
 Servicios web para los proyectos de la asignatura de entorno cliente.
 
@@ -84,7 +80,7 @@ export default {
   user: 'example',
   password: 'example',
   port: 3306,
-  host: 'arturober.com',
+  host: 'localhost:3000',
   debug: true,
 } as ConnectionOptions;
 ```
@@ -105,7 +101,7 @@ Lanzamos los servicios (en modo desarrollo) con el siguiente comando:
 npm run start
 ```
 
-También los podéis desplegar en un servidor utilizando por ejemplo Apache + [Passenger](https://www.phusionpassenger.com/library/deploy/apache/deploy/nodejs/). Después de ejecutar *npm run build* hay que lanzar el archivo main.js de la carpeta dist/.
+También los podéis desplegar en un servidor utilizando por ejemplo Apache + [Passenger](https://www.phusionpassenger.com/library/deploy/apache/deploy/nodejs/). Después de ejecutar **npm run build** hay que lanzar el archivo main.js de la carpeta dist/.
 
 # Servicios web - Colecciones
 
@@ -239,7 +235,7 @@ Devuelve todos los eventos ordenados por distancia hasta el usuario autenticado.
                 "id": 13,
                 "name": "Testing",
                 "email": "testing@email.com",
-                "avatar": "http://arturober.com:5009/img/users/1637329994765.jpg",
+                "avatar": "http://localhost:3000:5009/img/users/1637329994765.jpg",
                 "lat": 38,
                 "lng": -0.5
             },
@@ -250,7 +246,7 @@ Devuelve todos los eventos ordenados por distancia hasta el usuario autenticado.
             "lat": 38.272348,
             "lng": -0.532826,
             "address": "Carrer Cristóbal Colón",
-            "image": "http://arturober.com:5009/img/events/1636707297891.jpg",
+            "image": "http://localhost:3000:5009/img/events/1636707297891.jpg",
             "numAttend": 4,
             "distance": 30.378314971923828,
             "attend": false,
@@ -283,7 +279,7 @@ Ejemplo de respuesta de la llamada a **/events/2186**:
             "id": 13,
             "name": "Testing",
             "email": "testing@email.com",
-            "avatar": "http://arturober.com:5009/img/users/1637329994765.jpg",
+            "avatar": "http://localhost:3000:5009/img/users/1637329994765.jpg",
             "lat": 38,
             "lng": -0.5
         },
@@ -294,7 +290,7 @@ Ejemplo de respuesta de la llamada a **/events/2186**:
         "lat": 38.272348,
         "lng": -0.532826,
         "address": "Carrer Cristóbal Colón",
-        "image": "http://arturober.com:5009/img/events/1636707297891.jpg",
+        "image": "http://localhost:3000:5009/img/events/1636707297891.jpg",
         "numAttend": 4,
         "distance": 30.378314971923828,
         "attend": false,
@@ -345,12 +341,12 @@ Si todo es correcto, el servidor nos responderá con el evento añadido. Este te
         "address": "Nowhere",
         "lat": 35.23434,
         "lng": -0.63453,
-        "image": "http://arturober.com:5009/img/events/1638549374048.jpg",
+        "image": "http://localhost:3000:5009/img/events/1638549374048.jpg",
         "creator": {
             "id": 48,
             "name": "Another user",
             "email": "test3@email.com",
-            "avatar": "http://arturober.com:5009/img/users/1634033447718.jpg",
+            "avatar": "http://localhost:3000:5009/img/users/1634033447718.jpg",
             "lat": 38,
             "lng": -0.5
         },
@@ -401,47 +397,109 @@ Similar al servicio de añadir evento pero para editar un evento existente. En l
 
 La respuesta de este servicio será el evento actualizado, igual que el servicio de insertar evento. Se pueden producir errores del tipo **400** si algún campo es erróneo, **404** si el evento a editar no existe, o **403** si intentamos editar un evento que no es nuestro.
 
-### **PUT /events/:id/buy**
+### **GET /events/:id/attend**
 
-Este servicio se llama cuando el usuario autenticado quiere comprar el evento cuya id se especifica en la url. El cuerpo de la petición en este caso estará **vacío**. Automáticamente se pondrá el estado del evento a 3 (vendido) y se asociará el usuario autenticado como comprador.
-
-El servidor responderá también sin datos (**204**) si todo ha ido bien, o con un error, como por ejemplo 404 si el evento no existe.
-
-### **POST /events/:id/bookmarks**
-
-Este servicio añade el evento cuya id se pasa por parámetro, a la lista de favoritos del usuario autenticado. No se envía ningún dato con la petición y la respuesta igualmente será vacía (**204**) si todo ha ido correctamente.
-
-### **DELETE /events/:id/bookmarks**
-
-Borra el evento especificado de la lista de favoritos del usuario autenticado. La respuesta estará vacía (**204**) si no se produce ningún error.
-
-### **POST /events/:id/photos**
-
-Añade una imagen al evento cuya id se envía en la url (los eventos pueden tener varias imágenes asociadas). El cuerpo de la petición será la imagen en formato base64. Adicionalmente se puede enviar el campo setMain: true, para que además de añadir la imagen, la asocie como imagen principal del evento.
+Obtiene la lista de usuarios que asisten al evento cuya id se pasa por parámetro en la url. Ejemplo de respuesta:
 
 ```json
 {
-    "photo": "Imagen en base64",
-    "setMain": true
+    "users": [
+        {
+            "id": 64,
+            "name": "User Test",
+            "email": "test@2804.com",
+            "avatar": "http://localhost:3000:5009/img/users/1637760007859.jpg",
+            "lat": 37,
+            "lng": -0.5,
+            "me": false
+        },
+        {
+            "id": 80,
+            "name": "prueba",
+            "email": "prueba@prueba.com",
+            "avatar": "http://localhost:3000:5009/img/users/1637424131283.jpg",
+            "lat": 38.366189,
+            "lng": -0.492106,
+            "me": false
+        }
+    ]
 }
 ```
 
-La respuesta del servidor será la foto añadida, con la id y url generadas. O un error como 404 si el evento no existe.
+### **POST /events/:id/attend**
+
+Este servicio añade al usuario logueado a la lista de asistentes al evento cuya id se pasa en la url. No se envía ningún dato con la petición y la respuesta igualmente será vacía (**204**) si todo ha ido correctamente. Si un usuario intenta marcar su asistencia al mismo evento 2 veces, obtendrá una respuesta de error **400**.
+
+### **DELETE /events/:id/attend**
+
+Borra al usuario logueado de la lista de asistentes al evento. La respuesta estará vacía (**204**) si no se produce ningún error. Si se llama a este servicio y el usuario no está entre los asistentes, se devuelve un error **404**.
+
+### **GET /events/:id/comments**
+
+Obtiene la lista de comentarios publicados en el evento cuya id se pasa por parámetro en la url. Ejemplo de respuesta:
 
 ```json
 {
-    "photo": {
-        "url": "http://SERVER/img/events/1609348722463.jpg",
-        "id": 439
+    "comments": [
+        {
+            "id": 21,
+            "comment": "Another comment",
+            "date": "2021-12-01T22:31:44.000Z",
+            "user": {
+                "id": 48,
+                "name": "Another user",
+                "email": "test3@email.com",
+                "avatar": "http://localhost:3000:5009/img/users/1634033447718.jpg",
+                "lat": 38,
+                "lng": -0.5
+            }
+        },
+        {
+            "id": 1,
+            "comment": "Hello Event!",
+            "date": "2021-12-01T12:04:02.000Z",
+            "user": {
+                "id": 48,
+                "name": "Another user",
+                "email": "test3@email.com",
+                "avatar": "http://localhost:3000:5009/img/users/1634033447718.jpg",
+                "lat": 38,
+                "lng": -0.5
+            }
+        }
+    ]
+}
+```
+
+### **POST /events/:id/comments**
+
+Este servicio un comentario al evento cuya id se pasa en la url. Solo pueden comentar los usuarios que asisten a un evento. Si un usuario que no asiste, intenta publicar un comentario, recibirá un error **400** como respuesta. 
+
+Ejemplo de cuerpo del mensaje a enviar al servidor:
+
+```json
+{
+    "comment": "Another comment 2"
+}
+ ```
+
+El servidor responderá con los datos del comentario publicado:
+
+```json
+{
+    "id": 22,
+    "comment": "Another comment 2",
+    "date": "2021-12-03T17:11:03.356Z",
+    "user": {
+        "id": 48,
+        "name": "Another user",
+        "email": "test3@email.com",
+        "avatar": "http://localhost:3000:5009/img/users/1634033447718.jpg",
+        "lat": 38,
+        "lng": -0.5
     }
 }
 ```
-
-### **DELETE /events/:id/photos/:idPhoto**
-
-Este servicio borra la foto del evento especificado en la url (:id). Además, se especifica la id de la foto que se borrará (:idPhoto).
-
-El servidor devolverá una respuesta vacía si todo va bien, o un código de error como **404** si el evento no existe o la foto a borrar no pertenece al evento especificado. Si intentamos borrar una foto de un evento que no sea nuestro, nos responderá con un error **403**.
 
 ## Colección /users
 
@@ -460,7 +518,7 @@ Devuelve la información del perfil del usuario autenticado. El booleano me indi
         "email": "test@test.com",
         "lat": 38,
         "lng": -0.5,
-        "photo": "http://SERVER/img/users/1606587397679.jpg",
+        "avatar": "http://localhost:3000/img/users/1606587397679.jpg",
         "me": true
     }
 }
@@ -481,7 +539,7 @@ Ejemplo de llamada a **/users/1**:
         "email": "prueba@correo.es",
         "lat": 38.401827000000004,
         "lng": -0.524191,
-        "photo": "http://SERVER/img/users/1605562674191.jpg",
+        "avatar": "http://localhost:3000/img/users/1605562674191.jpg",
         "me": false
     }
 }
@@ -498,22 +556,20 @@ Ejemplo de respuesta al llamar a **/users/name/pru**:
     "users": [
         {
             "id": 1,
-            "registrationDate": "2016-12-31T11:18:14.000Z",
             "name": "Prueba",
             "email": "prueba@correo.es",
             "lat": 37,
             "lng": -0.5,
-            "photo": "http://SERVER/img/users/1605562674191.jpg",
+            "avatar": "http://localhost:3000/img/users/1605562674191.jpg",
             "me": false
         },
         {
             "id": 22,
-            "registrationDate": "2020-11-04T16:10:58.000Z",
             "name": "PruebaX01",
             "email": "prueba@bien.com",
             "lat": 38.3681882,
             "lng": -0.49744510000000003,
-            "photo": "http://SERVER/img/users/1604506258691.jpg",
+            "avatar": "http://localhost:3000/img/users/1604506258691.jpg",
             "me": false
         }
     ]
@@ -541,7 +597,7 @@ Modifica la imagen del usuario autenticado. Ejemplo de petición:
 
 ```json
 {
-    "photo": "Imagen en base 64"
+    "avatar": "Imagen en base 64"
 }
 ```
 
@@ -549,7 +605,7 @@ Si no hay ningún error, responde con la url de la nueva imagen almacenada en el
 
 ```json
 {
-    "photo": "http://SERVER/img/users/1609451684334.jpg"
+    "avatar": "http://localhost:3000/img/users/1609451684334.jpg"
 }
 ```
 
@@ -565,84 +621,3 @@ Actualiza la contraseña del usuario autenticado. Ejemplo de petición
 
 Si todo va bien, el servidor devuelve una respuesta vacía **204**.
 
-## Colección /ratings
-
-Todos los servicios de esta colección requieren del token de autenticación.
-
-### **POST /ratings**
-
-Llamamos a este servicio para puntuar una transacción de algún evento que hayamos comprado o vendido. Debemos pasarle la id del evento, el comentario y una valoración del 1 al 5. Solo se puede valorar la transacción de un evento **una sola vez**.
-
-Ejemplo de llamada:
-
-```json
-{
-    "rating": 5,
-    "comment": "Good buyer",
-    "event": 392
-}
-```
-
-Si todo va bien, el servidor nos devolverá una respuesta vacía **204**.
-
-Si algún campo no está o no tiene un formato correcto, nos devolvería un error **400**, mientras que en caso de realizar una operación no permitida como comentar 2 veces el mismo evento, nos devolvería un error **403**.
-
-### **GET /ratings/user/me**
-
-Devuelve un array con las puntuaciones recibidas por parte de otros usuarios en transacciones realizadas. Cada puntuación contendrá la información del evento, del usuario que nos ha valorado, la puntuación y el comentario.
-
-Ejemplo de respuesta:
-
-```json
-{
-    "ratings": [
-        {
-            "event": {
-                "id": 436,
-                "rating": 436,
-                "datePublished": "2020-12-17T16:22:18.000Z",
-                "title": "Complete suitcase",
-                "description": "It covers ALL your needs\nGuaranteed!",
-                "status": 3,
-                "price": 145,
-                "owner": {
-                    "id": 15,
-                    "registrationDate": "2020-11-01T10:13:04.000Z",
-                    "name": "Test 3",
-                    "email": "test333@email.com",
-                    "lat": 38,
-                    "lng": -0.5,
-                    "photo": "http://SERVER/img/users/1609451684334.jpg"
-                },
-                "numVisits": 9,
-                "category": 10,
-                "mainPhoto": 420,
-                "soldTo": {
-                    "id": 131,
-                    "registrationDate": "2020-12-23T15:00:55.000Z",
-                    "name": "Ivanset",
-                    "email": "ivanset@gmail.com",
-                    "lat": 38.3746048,
-                    "lng": -0.49151999999999996,
-                    "photo": "http://SERVER/img/users/1608822623745.jpg"
-                }
-            },
-            "user": {
-                "id": 131,
-                "registrationDate": "2020-12-23T15:00:55.000Z",
-                "name": "Ivanset",
-                "email": "ivanset@gmail.com",
-                "lat": 38.3746048,
-                "lng": -0.49151999999999996,
-                "photo": "http://SERVER/img/users/1608822623745.jpg"
-            },
-            "comment": "Good enough!",
-            "rating": 2
-        }
-    ]
-}
-```
-
-### **GET /ratings/user/:id**
-
-Este servicio es exactamente igual que el anterior, pero nos devuelve las puntuaciones que el usuario cuya id pasamos en la url, ha recibido.
