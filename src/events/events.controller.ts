@@ -37,9 +37,7 @@ export class EventsController {
     @AuthUser() authUser: User
   ) {
     const event = await this.eventsService.create(createEventDto, authUser);
-    event.attend = true;
-    event.distance = 0;
-    return event;
+    return this.eventsService.findOne(event.id, authUser);
   }
 
   @Get()

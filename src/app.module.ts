@@ -10,7 +10,9 @@ import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
-    AuthModule.forRoot({ googleId: '' }),
+    AuthModule.forRoot({
+      googleId: 'YOUR GOOGLE ID (same as the client)',
+    }),
     UsersModule,
     EventsModule,
     CommonsModule,

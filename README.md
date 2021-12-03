@@ -37,15 +37,10 @@
     - [**GET /auth/validate**](#get-authvalidate)
   - [Colección /events](#colección-events)
     - [**GET /events**](#get-events)
-    - [**GET /products/mine**](#get-productsmine)
-    - [**GET /products/bookmarks**](#get-productsbookmarks)
-    - [**GET /products/mine/sold**](#get-productsminesold)
-    - [**GET /products/mine/bought**](#get-productsminebought)
-    - [**GET /products/user/:id**](#get-productsuserid)
-    - [**GET /products/user/:id/sold**](#get-productsuseridsold)
-    - [**GET /products/user/:id/bought**](#get-productsuseridbought)
-    - [**GET /products/:id**](#get-productsid)
-    - [**POST /products**](#post-products)
+    - [**GET /events?creator={id}**](#get-eventscreatorid)
+    - [**GET /events?attending={id}**](#get-eventsattendingid)
+    - [**GET /events/:id**](#get-eventsid)
+    - [**POST /events**](#post-events)
     - [**DELETE /products/:id**](#delete-productsid)
     - [**PUT /products/:id**](#put-productsid)
     - [**PUT /products/:id/buy**](#put-productsidbuy)
@@ -71,6 +66,12 @@ Servicios web para los proyectos de la asignatura de entorno cliente.
 
 ## Instalación de los servicios
 
+Instalamos las dependencias del proyecto:
+
+```bash
+npm install
+```
+
 Para lanzar los servicios en local, primero importar la base de datos (directorio SQL). A continuación configuramos el acceso a la base de datos en el archivo **src/micro-orm.config.ts**:
 
 ```typescript
@@ -88,13 +89,7 @@ export default {
 } as ConnectionOptions;
 ```
 
-Después instalamos las dependencias del proyecto:
-
-```bash
-npm install
-```
-
-Edita el archivo **src/google-id.ts** para poner ahí tu id de Google (la que uses en el cliente) o no funcionará el login con dicho proveedor.
+Edita el archivo **src/app.module.ts** para poner ahí tu id de Google (la que uses en el cliente) o no funcionará el login con dicho proveedor.
 
 ## Configurando notificaciones Push
 
@@ -104,13 +99,13 @@ Descarga el archivo de cuenta de servicio (Configuración de proyecto -> cuentas
 
 ## Probando los servicios
 
-Lanzamos los servicios (modo testing) con el siguiente comando:
+Lanzamos los servicios (en modo desarrollo) con el siguiente comando:
 
 ```bash
 npm run start
 ```
 
-También los podéis desplegar en un servidor utilizando por ejemplo Apache + [Passenger](https://www.phusionpassenger.com/library/deploy/apache/deploy/nodejs/)
+También los podéis desplegar en un servidor utilizando por ejemplo Apache + [Passenger](https://www.phusionpassenger.com/library/deploy/apache/deploy/nodejs/). Después de ejecutar *npm run build* hay que lanzar el archivo main.js de la carpeta dist/.
 
 # Servicios web - Colecciones
 
@@ -143,7 +138,6 @@ Si el login es correcto, la respuesta será algo como esto:
 
 ```json
 {
-    "expiresIn": 31536000,
     "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNTc4MTYyNDA2LCJleHAiOjE2MDk2OTg0MDZ9.HQZ-PO-usLc9WT-0cUpuDPnVRFl_u71njNoQNj_TIx8"
 }
 ```
@@ -226,7 +220,7 @@ Mientras que si hay algún error en los datos enviados, devolverá un código **
 
 ### **GET /auth/validate**
 
-Este servicio simplemente comprueba que el token de autenticación que se envía en la cabecera **Authorization** es correcto (y se ha enviado), devolviendo una respuesta vacía **204** si hay token y es válido o un error **401** (Not Authorized) si no lo es.
+Este servicio simplemente comprueba que el token de autenticación que se envía en la cabecera **Authorization** es correcto (y se ha enviado), devolviendo una respuesta vacía **204** si hay token, y es válido, o un error **401** (Not Authorized), si no lo es.
 
 ## Colección /events
 
@@ -234,187 +228,135 @@ Todos los servicios de esta colección requieren del token de autenticación.
 
 ### **GET /events**
 
-Devuelve todos los events a publicados ordenados por distancia hasta el usuario autenticado. Ejemplo de respuesta de un evento:
+Devuelve todos los eventos ordenados por distancia hasta el usuario autenticado. Ejemplo de respuesta de un evento:
 
 ```json
 {
-    "products": [
+    "events": [
         {
-            "id": 438,
-            "datePublished": "2020-12-20T11:54:59.000Z",
-            "title": "Test product new",
-            "description": "Product with\n2 lines",
-            "status": 1,
-            "price": 23.35,
-            "owner": {
-                "id": 15,
-                "registrationDate": "2020-11-01T10:13:04.000Z",
-                "name": "Test User",
-                "email": "test@test.com",
+            "id": 2186,
+            "creator": {
+                "id": 13,
+                "name": "Testing",
+                "email": "testing@email.com",
+                "avatar": "http://arturober.com:5009/img/users/1637329994765.jpg",
                 "lat": 38,
-                "lng": -0.5,
-                "photo": "http://SERVER/img/users/1606587397679.jpg"
+                "lng": -0.5
             },
-            "numVisits": 5,
-            "category": {
-                "id": 1,
-                "name": "Electronics"
-            },
-            "mainPhoto": "http://SERVER/img/products/1608465299244.jpg",
-            "soldTo": null,
-            "rating": null,
-            "photos": null,
-            "bookmarked": false,
-            "distance": 34.36346,
-            "mine": true
+            "title": "An event",
+            "description": "I will be fun",
+            "date": "2022-10-12 00:00:00",
+            "price": 55,
+            "lat": 38.272348,
+            "lng": -0.532826,
+            "address": "Carrer Cristóbal Colón",
+            "image": "http://arturober.com:5009/img/events/1636707297891.jpg",
+            "numAttend": 4,
+            "distance": 30.378314971923828,
+            "attend": false,
+            "mine": false
         },
         ...
     ]
 }
 ```
 
-### **GET /products/mine**
+### **GET /events?creator={id}**
 
-Igual que el servicio **/products** pero devuelve solo los productos que vende el usuario actual.
+Igual que el servicio **/events** pero devuelve solo los eventos creados por el usuario con la id especificada (Ejemplo: /events?creator=48)
 
-### **GET /products/bookmarks**
+### **GET /events?attending={id}**
 
-Igual que el servicio **/products** pero devuelve los productos marcados como favoritos por el usuario actual.
+Igual que el servicio **/events** pero devuelve los eventos a los que asiste el usuario con la id especificada.
 
-### **GET /products/mine/sold**
+### **GET /events/:id**
 
-En este caso devuelve los productos que el usuario actual ya ha vendido a otro usuario (status = 3).
+Devuelve los datos del evento cuya id se recibe en la url.
 
-### **GET /products/mine/bought**
-
-Lista de productos que el usuario actual ha comprado a otros usuarios.
-
-### **GET /products/user/:id**
-
-Devuelve los productos que el usuario cuya id recibe en la url está vendiendo actualmente.
-
-### **GET /products/user/:id/sold**
-
-Devuelve los productos que el usuario cuya id recibe en la url ha vendido a otros usuarios.
-
-### **GET /products/user/:id/bought**
-
-Devuelve los productos que el usuario cuya id recibe en la url ha comprado a otros usuarios.
-
-### **GET /products/:id**
-
-Devuelve los datos del producto cuya id se recibe en la url. Este producto tendrá datos adicionales como la lista de fotos, las valoraciones del comprador y vendedor (si ha sido comprado y valorado), o el usuario que lo ha comprado el producto (si lo hay).
-
-Ejemplo de respuesta de la llamada a **/products/392** (producto vendido):
+Ejemplo de respuesta de la llamada a **/products/2186**:
 
 ```json
 {
-    "product": {
-        "id": 392,
-        "datePublished": "2020-11-19T21:28:38.000Z",
-        "title": "Have a hand",
-        "description": "A second hand for usefull usses",
-        "status": 3,
-        "price": 25,
-        "owner": {
-            "id": 98,
-            "registrationDate": "2020-11-19T21:27:23.000Z",
-            "name": "Irene-Prueba",
-            "email": "irene-prueba@mail.com",
-            "lat": 38.4018273,
-            "lng": -0.5241973,
-            "photo": "http://SERVER/img/users/1605821243453.jpg"
-        },
-        "numVisits": 5,
-        "category": {
-            "id": 9,
-            "name": "Home appliances"
-        },
-        "mainPhoto": "http://SERVER/img/products/1605821318532.jpg",
-        "soldTo": {
-            "id": 15,
-            "registrationDate": "2020-11-01T10:13:04.000Z",
-            "name": "Test User",
-            "email": "test@test.com",
+    "event": {
+        "id": 2186,
+        "creator": {
+            "id": 13,
+            "name": "Testing",
+            "email": "testing@email.com",
+            "avatar": "http://arturober.com:5009/img/users/1637329994765.jpg",
             "lat": 38,
-            "lng": -0.5,
-            "photo": "img/users/1606587397679.jpg"
+            "lng": -0.5
         },
-        "rating": {
-            "sellerRating": null,
-            "buyerRating": 5,
-            "sellerComment": null,
-            "buyerComment": "Good buyer",
-            "dateTransaction": "2020-12-20T10:49:44.000Z"
-        },
-        "photos": [
-          {
-              "id": 367,
-              "url": "http://SERVER/img/products/1605821318532.jpg"
-          }
-        ],
-        "bookmarked": true,
-        "distance": 44.6710090637207,
+        "title": "An event",
+        "description": "I will be fun",
+        "date": "2022-10-12 00:00:00",
+        "price": 55,
+        "lat": 38.272348,
+        "lng": -0.532826,
+        "address": "Carrer Cristóbal Colón",
+        "image": "http://arturober.com:5009/img/events/1636707297891.jpg",
+        "numAttend": 4,
+        "distance": 30.378314971923828,
+        "attend": false,
         "mine": false
     }
 }
 ```
 
-Si el producto no existe, el servidor deberá devolver un error **404**.
+Si el evento no existe, el servidor deberá devolver un error **404**.
 
 ```json
 {
     "statusCode": 404,
-    "message": "Product not found",
+    "message": "Event not found",
     "error": "Not Found"
 }
 ```
 
-### **POST /products**
+### **POST /events**
 
-Este servicio inserta un nuevo producto a la base de datos y lo asocia al usuario autenticado. El producto por defecto estará "en venta" (status = 1).
+Este servicio inserta un nuevo evento en la base de datos y lo asocia al usuario autenticado (creador). 
 
-Esta es la información necesaria para crear un producto que debemos enviar al servidor:
+Esta es la información necesaria para crear un evento que debemos enviar al servidor:
 
 ```json
 {
-    "title": "Test product new",
-    "description": "Product with\n2 lines",
-    "category": 1,
-    "price": 23.35,
-    "mainPhoto": "Imagen en Base64"
+    "title": "This is a a new event",
+    "description": "Description for the new event",
+    "date": "2021-12-03",
+    "price": 25.35,
+    "address": "Nowhere",
+    "lat": 35.23434,
+    "lng": -0.63453,
+    "image": "Imagen en Base64"
 }
 ```
 
-Si todo es correcto, el servidor nos responderá con el producto añadido. Este tendrá más información de la que originalmente enviamos al servidor, como los datos del usuario creado, el estado, número de visitas, o la url de la imagen, entre otras:
+Si todo es correcto, el servidor nos responderá con el evento añadido. Este tendrá más información de la que originalmente enviamos al servidor, como los datos del usuario creador, la distancia, número de personas que asisten, o la url de la imagen, entre otras:
 
 ```json
 {
-    "product": {
-        "status": 1,
-        "photos": [
-            {
-                "url": "http://SERVER/img/products/1609248956049.jpg",
-                "id": 437
-            }
-        ],
-        "title": "Test product new",
-        "description": "Product with\n2 lines",
-        "price": 23.35,
-        "owner": {
-            "id": 15,
-            "registrationDate": "2020-11-01T10:13:04.000Z",
-            "name": "Test User",
-            "email": "test@test.com",
+    "event": {
+        "numAttend": 0,
+        "title": "This is a a new event",
+        "description": "Description for the new event",
+        "date": "2021-12-03",
+        "price": 25.35,
+        "address": "Nowhere",
+        "lat": 35.23434,
+        "lng": -0.63453,
+        "image": "http://arturober.com:5009/img/events/1638549374048.jpg",
+        "creator": {
+            "id": 48,
+            "name": "Another user",
+            "email": "test3@email.com",
+            "avatar": "http://arturober.com:5009/img/users/1634033447718.jpg",
             "lat": 38,
-            "lng": -0.5,
-            "photo": "http://SERVER/img/users/1606587397679.jpg"
+            "lng": -0.5
         },
-        "category": {
-            "id": 1
-        },
-        "id": 446,
-        "mainPhoto": "http://SERVER/img/products/1609248956049.jpg",
+        "id": 2385,
+        "attend": true,
+        "distance": 0,
         "mine": true
     }
 }
