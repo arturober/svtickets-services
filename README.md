@@ -24,7 +24,7 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-- [Servicios web applicación SanviPop](#servicios-web-applicación-sanvipop)
+- [Servicios web applicación SVTickets](#servicios-web-applicación-svtickets)
   - [Instalación de los servicios](#instalación-de-los-servicios)
   - [Configurando notificaciones Push](#configurando-notificaciones-push)
   - [Probando los servicios](#probando-los-servicios)
@@ -37,22 +37,17 @@
     - [**GET /auth/validate**](#get-authvalidate)
   - [Colección /events](#colección-events)
     - [**GET /events**](#get-events)
-    - [**GET /products/mine**](#get-productsmine)
-    - [**GET /products/bookmarks**](#get-productsbookmarks)
-    - [**GET /products/mine/sold**](#get-productsminesold)
-    - [**GET /products/mine/bought**](#get-productsminebought)
-    - [**GET /products/user/:id**](#get-productsuserid)
-    - [**GET /products/user/:id/sold**](#get-productsuseridsold)
-    - [**GET /products/user/:id/bought**](#get-productsuseridbought)
-    - [**GET /products/:id**](#get-productsid)
-    - [**POST /products**](#post-products)
-    - [**DELETE /products/:id**](#delete-productsid)
-    - [**PUT /products/:id**](#put-productsid)
-    - [**PUT /products/:id/buy**](#put-productsidbuy)
-    - [**POST /products/:id/bookmarks**](#post-productsidbookmarks)
-    - [**DELETE /products/:id/bookmarks**](#delete-productsidbookmarks)
-    - [**POST /products/:id/photos**](#post-productsidphotos)
-    - [**DELETE /products/:id/photos/:idPhoto**](#delete-productsidphotosidphoto)
+    - [**GET /events?creator={id}**](#get-eventscreatorid)
+    - [**GET /events?attending={id}**](#get-eventsattendingid)
+    - [**GET /events/:id**](#get-eventsid)
+    - [**POST /events**](#post-events)
+    - [**DELETE /events/:id**](#delete-eventsid)
+    - [**PUT /events/:id**](#put-eventsid)
+    - [**GET /events/:id/attend**](#get-eventsidattend)
+    - [**POST /events/:id/attend**](#post-eventsidattend)
+    - [**DELETE /events/:id/attend**](#delete-eventsidattend)
+    - [**GET /events/:id/comments**](#get-eventsidcomments)
+    - [**POST /events/:id/comments**](#post-eventsidcomments)
   - [Colección /users](#colección-users)
     - [**GET /users/me**](#get-usersme)
     - [**GET /users/:id**](#get-usersid)
@@ -60,16 +55,18 @@
     - [**PUT /users/me**](#put-usersme)
     - [**PUT /users/me/photo**](#put-usersmephoto)
     - [**PUT /users/me/password**](#put-usersmepassword)
-  - [Colección /ratings](#colección-ratings)
-    - [**POST /ratings**](#post-ratings)
-    - [**GET /ratings/user/me**](#get-ratingsuserme)
-    - [**GET /ratings/user/:id**](#get-ratingsuserid)
 
-# Servicios web applicación SanviPop
+# Servicios web applicación SVTickets
 
 Servicios web para los proyectos de la asignatura de entorno cliente.
 
 ## Instalación de los servicios
+
+Instalamos las dependencias del proyecto:
+
+```bash
+npm install
+```
 
 Para lanzar los servicios en local, primero importar la base de datos (directorio SQL). A continuación configuramos el acceso a la base de datos en el archivo **src/micro-orm.config.ts**:
 
@@ -83,18 +80,12 @@ export default {
   user: 'example',
   password: 'example',
   port: 3306,
-  host: 'arturober.com',
+  host: 'localhost:3000',
   debug: true,
 } as ConnectionOptions;
 ```
 
-Después instalamos las dependencias del proyecto:
-
-```bash
-npm install
-```
-
-Edita el archivo **src/google-id.ts** para poner ahí tu id de Google (la que uses en el cliente) o no funcionará el login con dicho proveedor.
+Edita el archivo **src/app.module.ts** para poner ahí tu id de Google (la que uses en el cliente) o no funcionará el login con dicho proveedor.
 
 ## Configurando notificaciones Push
 
@@ -104,13 +95,13 @@ Descarga el archivo de cuenta de servicio (Configuración de proyecto -> cuentas
 
 ## Probando los servicios
 
-Lanzamos los servicios (modo testing) con el siguiente comando:
+Lanzamos los servicios (en modo desarrollo) con el siguiente comando:
 
 ```bash
 npm run start
 ```
 
-También los podéis desplegar en un servidor utilizando por ejemplo Apache + [Passenger](https://www.phusionpassenger.com/library/deploy/apache/deploy/nodejs/)
+También los podéis desplegar en un servidor utilizando por ejemplo Apache + [Passenger](https://www.phusionpassenger.com/library/deploy/apache/deploy/nodejs/). Después de ejecutar **npm run build** hay que lanzar el archivo main.js de la carpeta dist/.
 
 # Servicios web - Colecciones
 
@@ -143,7 +134,6 @@ Si el login es correcto, la respuesta será algo como esto:
 
 ```json
 {
-    "expiresIn": 31536000,
     "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNTc4MTYyNDA2LCJleHAiOjE2MDk2OTg0MDZ9.HQZ-PO-usLc9WT-0cUpuDPnVRFl_u71njNoQNj_TIx8"
 }
 ```
@@ -226,7 +216,7 @@ Mientras que si hay algún error en los datos enviados, devolverá un código **
 
 ### **GET /auth/validate**
 
-Este servicio simplemente comprueba que el token de autenticación que se envía en la cabecera **Authorization** es correcto (y se ha enviado), devolviendo una respuesta vacía **204** si hay token y es válido o un error **401** (Not Authorized) si no lo es.
+Este servicio simplemente comprueba que el token de autenticación que se envía en la cabecera **Authorization** es correcto (y se ha enviado), devolviendo una respuesta vacía **204** si hay token, y es válido, o un error **401** (Not Authorized), si no lo es.
 
 ## Colección /events
 
@@ -234,187 +224,135 @@ Todos los servicios de esta colección requieren del token de autenticación.
 
 ### **GET /events**
 
-Devuelve todos los events a publicados ordenados por distancia hasta el usuario autenticado. Ejemplo de respuesta de un evento:
+Devuelve todos los eventos ordenados por distancia hasta el usuario autenticado. Ejemplo de respuesta de un evento:
 
 ```json
 {
-    "products": [
+    "events": [
         {
-            "id": 438,
-            "datePublished": "2020-12-20T11:54:59.000Z",
-            "title": "Test product new",
-            "description": "Product with\n2 lines",
-            "status": 1,
-            "price": 23.35,
-            "owner": {
-                "id": 15,
-                "registrationDate": "2020-11-01T10:13:04.000Z",
-                "name": "Test User",
-                "email": "test@test.com",
+            "id": 2186,
+            "creator": {
+                "id": 13,
+                "name": "Testing",
+                "email": "testing@email.com",
+                "avatar": "http://localhost:3000:5009/img/users/1637329994765.jpg",
                 "lat": 38,
-                "lng": -0.5,
-                "photo": "http://SERVER/img/users/1606587397679.jpg"
+                "lng": -0.5
             },
-            "numVisits": 5,
-            "category": {
-                "id": 1,
-                "name": "Electronics"
-            },
-            "mainPhoto": "http://SERVER/img/products/1608465299244.jpg",
-            "soldTo": null,
-            "rating": null,
-            "photos": null,
-            "bookmarked": false,
-            "distance": 34.36346,
-            "mine": true
+            "title": "An event",
+            "description": "I will be fun",
+            "date": "2022-10-12 00:00:00",
+            "price": 55,
+            "lat": 38.272348,
+            "lng": -0.532826,
+            "address": "Carrer Cristóbal Colón",
+            "image": "http://localhost:3000:5009/img/events/1636707297891.jpg",
+            "numAttend": 4,
+            "distance": 30.378314971923828,
+            "attend": false,
+            "mine": false
         },
         ...
     ]
 }
 ```
 
-### **GET /products/mine**
+### **GET /events?creator={id}**
 
-Igual que el servicio **/products** pero devuelve solo los productos que vende el usuario actual.
+Igual que el servicio **/events** pero devuelve solo los eventos creados por el usuario con la id especificada (Ejemplo: /events?creator=48)
 
-### **GET /products/bookmarks**
+### **GET /events?attending={id}**
 
-Igual que el servicio **/products** pero devuelve los productos marcados como favoritos por el usuario actual.
+Igual que el servicio **/events** pero devuelve los eventos a los que asiste el usuario con la id especificada.
 
-### **GET /products/mine/sold**
+### **GET /events/:id**
 
-En este caso devuelve los productos que el usuario actual ya ha vendido a otro usuario (status = 3).
+Devuelve los datos del evento cuya id se recibe en la url.
 
-### **GET /products/mine/bought**
-
-Lista de productos que el usuario actual ha comprado a otros usuarios.
-
-### **GET /products/user/:id**
-
-Devuelve los productos que el usuario cuya id recibe en la url está vendiendo actualmente.
-
-### **GET /products/user/:id/sold**
-
-Devuelve los productos que el usuario cuya id recibe en la url ha vendido a otros usuarios.
-
-### **GET /products/user/:id/bought**
-
-Devuelve los productos que el usuario cuya id recibe en la url ha comprado a otros usuarios.
-
-### **GET /products/:id**
-
-Devuelve los datos del producto cuya id se recibe en la url. Este producto tendrá datos adicionales como la lista de fotos, las valoraciones del comprador y vendedor (si ha sido comprado y valorado), o el usuario que lo ha comprado el producto (si lo hay).
-
-Ejemplo de respuesta de la llamada a **/products/392** (producto vendido):
+Ejemplo de respuesta de la llamada a **/events/2186**:
 
 ```json
 {
-    "product": {
-        "id": 392,
-        "datePublished": "2020-11-19T21:28:38.000Z",
-        "title": "Have a hand",
-        "description": "A second hand for usefull usses",
-        "status": 3,
-        "price": 25,
-        "owner": {
-            "id": 98,
-            "registrationDate": "2020-11-19T21:27:23.000Z",
-            "name": "Irene-Prueba",
-            "email": "irene-prueba@mail.com",
-            "lat": 38.4018273,
-            "lng": -0.5241973,
-            "photo": "http://SERVER/img/users/1605821243453.jpg"
-        },
-        "numVisits": 5,
-        "category": {
-            "id": 9,
-            "name": "Home appliances"
-        },
-        "mainPhoto": "http://SERVER/img/products/1605821318532.jpg",
-        "soldTo": {
-            "id": 15,
-            "registrationDate": "2020-11-01T10:13:04.000Z",
-            "name": "Test User",
-            "email": "test@test.com",
+    "event": {
+        "id": 2186,
+        "creator": {
+            "id": 13,
+            "name": "Testing",
+            "email": "testing@email.com",
+            "avatar": "http://localhost:3000:5009/img/users/1637329994765.jpg",
             "lat": 38,
-            "lng": -0.5,
-            "photo": "img/users/1606587397679.jpg"
+            "lng": -0.5
         },
-        "rating": {
-            "sellerRating": null,
-            "buyerRating": 5,
-            "sellerComment": null,
-            "buyerComment": "Good buyer",
-            "dateTransaction": "2020-12-20T10:49:44.000Z"
-        },
-        "photos": [
-          {
-              "id": 367,
-              "url": "http://SERVER/img/products/1605821318532.jpg"
-          }
-        ],
-        "bookmarked": true,
-        "distance": 44.6710090637207,
+        "title": "An event",
+        "description": "I will be fun",
+        "date": "2022-10-12 00:00:00",
+        "price": 55,
+        "lat": 38.272348,
+        "lng": -0.532826,
+        "address": "Carrer Cristóbal Colón",
+        "image": "http://localhost:3000:5009/img/events/1636707297891.jpg",
+        "numAttend": 4,
+        "distance": 30.378314971923828,
+        "attend": false,
         "mine": false
     }
 }
 ```
 
-Si el producto no existe, el servidor deberá devolver un error **404**.
+Si el evento no existe, el servidor deberá devolver un error **404**.
 
 ```json
 {
     "statusCode": 404,
-    "message": "Product not found",
+    "message": "Event not found",
     "error": "Not Found"
 }
 ```
 
-### **POST /products**
+### **POST /events**
 
-Este servicio inserta un nuevo producto a la base de datos y lo asocia al usuario autenticado. El producto por defecto estará "en venta" (status = 1).
+Este servicio inserta un nuevo evento en la base de datos y lo asocia al usuario autenticado (creador). 
 
-Esta es la información necesaria para crear un producto que debemos enviar al servidor:
+Esta es la información necesaria para crear un evento que debemos enviar al servidor:
 
 ```json
 {
-    "title": "Test product new",
-    "description": "Product with\n2 lines",
-    "category": 1,
-    "price": 23.35,
-    "mainPhoto": "Imagen en Base64"
+    "title": "This is a a new event",
+    "description": "Description for the new event",
+    "date": "2021-12-03",
+    "price": 25.35,
+    "address": "Nowhere",
+    "lat": 35.23434,
+    "lng": -0.63453,
+    "image": "Imagen en Base64"
 }
 ```
 
-Si todo es correcto, el servidor nos responderá con el producto añadido. Este tendrá más información de la que originalmente enviamos al servidor, como los datos del usuario creado, el estado, número de visitas, o la url de la imagen, entre otras:
+Si todo es correcto, el servidor nos responderá con el evento añadido. Este tendrá más información de la que originalmente enviamos al servidor, como los datos del usuario creador, la distancia, número de personas que asisten, o la url de la imagen, entre otras:
 
 ```json
 {
-    "product": {
-        "status": 1,
-        "photos": [
-            {
-                "url": "http://SERVER/img/products/1609248956049.jpg",
-                "id": 437
-            }
-        ],
-        "title": "Test product new",
-        "description": "Product with\n2 lines",
-        "price": 23.35,
-        "owner": {
-            "id": 15,
-            "registrationDate": "2020-11-01T10:13:04.000Z",
-            "name": "Test User",
-            "email": "test@test.com",
+    "event": {
+        "numAttend": 0,
+        "title": "This is a a new event",
+        "description": "Description for the new event",
+        "date": "2021-12-03",
+        "price": 25.35,
+        "address": "Nowhere",
+        "lat": 35.23434,
+        "lng": -0.63453,
+        "image": "http://localhost:3000:5009/img/events/1638549374048.jpg",
+        "creator": {
+            "id": 48,
+            "name": "Another user",
+            "email": "test3@email.com",
+            "avatar": "http://localhost:3000:5009/img/users/1634033447718.jpg",
             "lat": 38,
-            "lng": -0.5,
-            "photo": "http://SERVER/img/users/1606587397679.jpg"
+            "lng": -0.5
         },
-        "category": {
-            "id": 1
-        },
-        "id": 446,
-        "mainPhoto": "http://SERVER/img/products/1609248956049.jpg",
+        "id": 2385,
+        "attend": true,
+        "distance": 0,
         "mine": true
     }
 }
@@ -426,108 +364,142 @@ Si algún campo no tuviera un formato correcto o no estuviera presente, el servi
 {
     "statusCode": 400,
     "message": [
-        "category should not be empty",
-        "category must be an integer number",
-        "price should not be empty",
-        "price must be a number conforming to the specified constraints",
-        "mainPhoto should not be empty",
-        "mainPhoto must be a string"
+        "title should not be empty",
+        "title must be a string",
+        "lat should not be empty",
+        "lat must be a number conforming to the specified constraints",
+        "lng should not be empty",
+        "lng must be a number conforming to the specified constraints",
+        "address should not be empty",
+        "address must be a string"
     ],
     "error": "Bad Request"
 }
 ```
 
-### **DELETE /products/:id**
+### **DELETE /events/:id**
 
-Este servicio borra el producto cuya id se especifica en la url. Devuelve una respuesta vacía **204** si el producto se ha borrado, o un error 404 si intentamos borrar un producto que no existe.
+Este servicio borra el evento cuya id se especifica en la url. Devuelve una respuesta vacía **204** si el evento se ha borrado, o un error 404 si intentamos borrar un evento que no existe.
 
-En caso de intentar borrar un producto que no es nuestro, nos responderá con un error **403** (Forbidden):
+En caso de intentar borrar un evento que no es nuestro, nos responderá con un error **403** (Forbidden):
 
 ```json
 {
     "statusCode": 403,
-    "message": "You can't edit or delete other user's products",
+    "message": "This is not your event",
     "error": "Forbidden"
 }
 ```
 
-### **PUT /products/:id**
+### **PUT /events/:id**
 
-Similar al servicio de añadir producto pero para editar un producto existente. En la url se debe especificar la id del producto que vamos a modificar. Todos los campos a editar son opcionales, es decir, se solo se cambiará la información enviada en la base de datos.
+Similar al servicio de añadir evento pero para editar un evento existente. En la url se debe especificar la id del evento que vamos a modificar. Todos los campos a editar son opcionales, es decir, se solo se modificarán los campos enviados. También se pueden enviar todos los campos, simplemente dejando los que no cambien con su valor original.
 
-A continuación vamos a ver 3 posibilidades para editar la información de un producto.
+La respuesta de este servicio será el evento actualizado, igual que el servicio de insertar evento. Se pueden producir errores del tipo **400** si algún campo es erróneo, **404** si el evento a editar no existe, o **403** si intentamos editar un evento que no es nuestro.
 
-1. Modificar información básica del producto (como añadir pero sin la foto). La categoría al igual que al añadir, debe enviarse como número (id de la nueva categoría).
+### **GET /events/:id/attend**
+
+Obtiene la lista de usuarios que asisten al evento cuya id se pasa por parámetro en la url. Ejemplo de respuesta:
 
 ```json
 {
-    "title": "Test product Updated",
-    "description": "Product with\n2 lines and more",
-    "category": 2,
-    "price": 43
+    "users": [
+        {
+            "id": 64,
+            "name": "User Test",
+            "email": "test@2804.com",
+            "avatar": "http://localhost:3000:5009/img/users/1637760007859.jpg",
+            "lat": 37,
+            "lng": -0.5,
+            "me": false
+        },
+        {
+            "id": 80,
+            "name": "prueba",
+            "email": "prueba@prueba.com",
+            "avatar": "http://localhost:3000:5009/img/users/1637424131283.jpg",
+            "lat": 38.366189,
+            "lng": -0.492106,
+            "me": false
+        }
+    ]
 }
 ```
 
-2. Cambiar el estado de un producto. La propiedad **status** indica: 1 - en venta, 2 - reservado, 3 - vendido. A la hora de cambiar el estado de un producto a "vendido", se deberá enviar también la id del usuario al que se le ha vendido (propiedad **soldTo**). Ejemplo:
+### **POST /events/:id/attend**
+
+Este servicio añade al usuario logueado a la lista de asistentes al evento cuya id se pasa en la url. No se envía ningún dato con la petición y la respuesta igualmente será vacía (**204**) si todo ha ido correctamente. Si un usuario intenta marcar su asistencia al mismo evento 2 veces, obtendrá una respuesta de error **400**.
+
+### **DELETE /events/:id/attend**
+
+Borra al usuario logueado de la lista de asistentes al evento. La respuesta estará vacía (**204**) si no se produce ningún error. Si se llama a este servicio y el usuario no está entre los asistentes, se devuelve un error **404**.
+
+### **GET /events/:id/comments**
+
+Obtiene la lista de comentarios publicados en el evento cuya id se pasa por parámetro en la url. Ejemplo de respuesta:
 
 ```json
 {
-    "status": 3,
-    "soldTo": 1
+    "comments": [
+        {
+            "id": 21,
+            "comment": "Another comment",
+            "date": "2021-12-01T22:31:44.000Z",
+            "user": {
+                "id": 48,
+                "name": "Another user",
+                "email": "test3@email.com",
+                "avatar": "http://localhost:3000:5009/img/users/1634033447718.jpg",
+                "lat": 38,
+                "lng": -0.5
+            }
+        },
+        {
+            "id": 1,
+            "comment": "Hello Event!",
+            "date": "2021-12-01T12:04:02.000Z",
+            "user": {
+                "id": 48,
+                "name": "Another user",
+                "email": "test3@email.com",
+                "avatar": "http://localhost:3000:5009/img/users/1634033447718.jpg",
+                "lat": 38,
+                "lng": -0.5
+            }
+        }
+    ]
 }
 ```
 
-3. Finalmente, también se puede usar este servicio para establecer una nueva foto principal para el producto. Enviando como valor de la propiedad **mainPhoto**, la id de una de las imagénes que tenga el producto asociadas.
+### **POST /events/:id/comments**
+
+Este servicio un comentario al evento cuya id se pasa en la url. Solo pueden comentar los usuarios que asisten a un evento. Si un usuario que no asiste, intenta publicar un comentario, recibirá un error **400** como respuesta. 
+
+Ejemplo de cuerpo del mensaje a enviar al servidor:
 
 ```json
 {
-    "mainPhoto": 204
+    "comment": "Another comment 2"
 }
-```
+ ```
 
-La respuesta de este servicio será el producto actualizado, igual que el servicio de insertar producto. Se pueden producir errores del tipo **400** si algún campo es erróneo, **404** si el producto a editar no existe, o **403** si intentamos editar un producto que no es nuestro.
-
-### **PUT /products/:id/buy**
-
-Este servicio se llama cuando el usuario autenticado quiere comprar el producto cuya id se especifica en la url. El cuerpo de la petición en este caso estará **vacío**. Automáticamente se pondrá el estado del producto a 3 (vendido) y se asociará el usuario autenticado como comprador.
-
-El servidor responderá también sin datos (**204**) si todo ha ido bien, o con un error, como por ejemplo 404 si el producto no existe.
-
-### **POST /products/:id/bookmarks**
-
-Este servicio añade el producto cuya id se pasa por parámetro, a la lista de favoritos del usuario autenticado. No se envía ningún dato con la petición y la respuesta igualmente será vacía (**204**) si todo ha ido correctamente.
-
-### **DELETE /products/:id/bookmarks**
-
-Borra el producto especificado de la lista de favoritos del usuario autenticado. La respuesta estará vacía (**204**) si no se produce ningún error.
-
-### **POST /products/:id/photos**
-
-Añade una imagen al producto cuya id se envía en la url (los productos pueden tener varias imágenes asociadas). El cuerpo de la petición será la imagen en formato base64. Adicionalmente se puede enviar el campo setMain: true, para que además de añadir la imagen, la asocie como imagen principal del producto.
+El servidor responderá con los datos del comentario publicado:
 
 ```json
 {
-    "photo": "Imagen en base64",
-    "setMain": true
-}
-```
-
-La respuesta del servidor será la foto añadida, con la id y url generadas. O un error como 404 si el producto no existe.
-
-```json
-{
-    "photo": {
-        "url": "http://SERVER/img/products/1609348722463.jpg",
-        "id": 439
+    "id": 22,
+    "comment": "Another comment 2",
+    "date": "2021-12-03T17:11:03.356Z",
+    "user": {
+        "id": 48,
+        "name": "Another user",
+        "email": "test3@email.com",
+        "avatar": "http://localhost:3000:5009/img/users/1634033447718.jpg",
+        "lat": 38,
+        "lng": -0.5
     }
 }
 ```
-
-### **DELETE /products/:id/photos/:idPhoto**
-
-Este servicio borra la foto del producto especificado en la url (:id). Además, se especifica la id de la foto que se borrará (:idPhoto).
-
-El servidor devolverá una respuesta vacía si todo va bien, o un código de error como **404** si el producto no existe o la foto a borrar no pertenece al producto especificado. Si intentamos borrar una foto de un producto que no sea nuestro, nos responderá con un error **403**.
 
 ## Colección /users
 
@@ -546,7 +518,7 @@ Devuelve la información del perfil del usuario autenticado. El booleano me indi
         "email": "test@test.com",
         "lat": 38,
         "lng": -0.5,
-        "photo": "http://SERVER/img/users/1606587397679.jpg",
+        "avatar": "http://localhost:3000/img/users/1606587397679.jpg",
         "me": true
     }
 }
@@ -567,7 +539,7 @@ Ejemplo de llamada a **/users/1**:
         "email": "prueba@correo.es",
         "lat": 38.401827000000004,
         "lng": -0.524191,
-        "photo": "http://SERVER/img/users/1605562674191.jpg",
+        "avatar": "http://localhost:3000/img/users/1605562674191.jpg",
         "me": false
     }
 }
@@ -584,22 +556,20 @@ Ejemplo de respuesta al llamar a **/users/name/pru**:
     "users": [
         {
             "id": 1,
-            "registrationDate": "2016-12-31T11:18:14.000Z",
             "name": "Prueba",
             "email": "prueba@correo.es",
             "lat": 37,
             "lng": -0.5,
-            "photo": "http://SERVER/img/users/1605562674191.jpg",
+            "avatar": "http://localhost:3000/img/users/1605562674191.jpg",
             "me": false
         },
         {
             "id": 22,
-            "registrationDate": "2020-11-04T16:10:58.000Z",
             "name": "PruebaX01",
             "email": "prueba@bien.com",
             "lat": 38.3681882,
             "lng": -0.49744510000000003,
-            "photo": "http://SERVER/img/users/1604506258691.jpg",
+            "avatar": "http://localhost:3000/img/users/1604506258691.jpg",
             "me": false
         }
     ]
@@ -627,7 +597,7 @@ Modifica la imagen del usuario autenticado. Ejemplo de petición:
 
 ```json
 {
-    "photo": "Imagen en base 64"
+    "avatar": "Imagen en base 64"
 }
 ```
 
@@ -635,7 +605,7 @@ Si no hay ningún error, responde con la url de la nueva imagen almacenada en el
 
 ```json
 {
-    "photo": "http://SERVER/img/users/1609451684334.jpg"
+    "avatar": "http://localhost:3000/img/users/1609451684334.jpg"
 }
 ```
 
@@ -651,84 +621,3 @@ Actualiza la contraseña del usuario autenticado. Ejemplo de petición
 
 Si todo va bien, el servidor devuelve una respuesta vacía **204**.
 
-## Colección /ratings
-
-Todos los servicios de esta colección requieren del token de autenticación.
-
-### **POST /ratings**
-
-Llamamos a este servicio para puntuar una transacción de algún producto que hayamos comprado o vendido. Debemos pasarle la id del producto, el comentario y una valoración del 1 al 5. Solo se puede valorar la transacción de un producto **una sola vez**.
-
-Ejemplo de llamada:
-
-```json
-{
-    "rating": 5,
-    "comment": "Good buyer",
-    "product": 392
-}
-```
-
-Si todo va bien, el servidor nos devolverá una respuesta vacía **204**.
-
-Si algún campo no está o no tiene un formato correcto, nos devolvería un error **400**, mientras que en caso de realizar una operación no permitida como comentar 2 veces el mismo producto, nos devolvería un error **403**.
-
-### **GET /ratings/user/me**
-
-Devuelve un array con las puntuaciones recibidas por parte de otros usuarios en transacciones realizadas. Cada puntuación contendrá la información del producto, del usuario que nos ha valorado, la puntuación y el comentario.
-
-Ejemplo de respuesta:
-
-```json
-{
-    "ratings": [
-        {
-            "product": {
-                "id": 436,
-                "rating": 436,
-                "datePublished": "2020-12-17T16:22:18.000Z",
-                "title": "Complete suitcase",
-                "description": "It covers ALL your needs\nGuaranteed!",
-                "status": 3,
-                "price": 145,
-                "owner": {
-                    "id": 15,
-                    "registrationDate": "2020-11-01T10:13:04.000Z",
-                    "name": "Test 3",
-                    "email": "test333@email.com",
-                    "lat": 38,
-                    "lng": -0.5,
-                    "photo": "http://SERVER/img/users/1609451684334.jpg"
-                },
-                "numVisits": 9,
-                "category": 10,
-                "mainPhoto": 420,
-                "soldTo": {
-                    "id": 131,
-                    "registrationDate": "2020-12-23T15:00:55.000Z",
-                    "name": "Ivanset",
-                    "email": "ivanset@gmail.com",
-                    "lat": 38.3746048,
-                    "lng": -0.49151999999999996,
-                    "photo": "http://SERVER/img/users/1608822623745.jpg"
-                }
-            },
-            "user": {
-                "id": 131,
-                "registrationDate": "2020-12-23T15:00:55.000Z",
-                "name": "Ivanset",
-                "email": "ivanset@gmail.com",
-                "lat": 38.3746048,
-                "lng": -0.49151999999999996,
-                "photo": "http://SERVER/img/users/1608822623745.jpg"
-            },
-            "comment": "Good enough!",
-            "rating": 2
-        }
-    ]
-}
-```
-
-### **GET /ratings/user/:id**
-
-Este servicio es exactamente igual que el anterior, pero nos devuelve las puntuaciones que el usuario cuya id pasamos en la url, ha recibido.
