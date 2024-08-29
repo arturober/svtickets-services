@@ -1,20 +1,14 @@
-import {
-  Repository,
-  QueryOrder,
-  QBFilterQuery,
-  QueryOrderMap,
-} from '@mikro-orm/core';
+import { QueryOrder, QBFilterQuery, QueryOrderMap } from '@mikro-orm/core';
 import { EntityRepository } from '@mikro-orm/knex';
 import { Event } from 'src/entities/Event';
 
-@Repository(Event)
 export class EventsRepository extends EntityRepository<Event> {
   public findByDistance(
     lat = 1,
     lng = 1,
     idLogged = 1,
     where: QBFilterQuery<Event> = null,
-    orderBy: QueryOrderMap = { distance: QueryOrder.ASC },
+    orderBy: QueryOrderMap<Event> = { distance: QueryOrder.ASC },
     joins: Map<string, any> = null
   ): Promise<Event[]> {
     let qb = this.em

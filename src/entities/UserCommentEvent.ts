@@ -1,12 +1,4 @@
-import {
-  Entity,
-  Index,
-  ManyToOne,
-  PrimaryKey,
-  PrimaryKeyType,
-  Property,
-} from '@mikro-orm/core';
-import { User } from './User';
+import { Entity, ManyToOne, PrimaryKey, Property } from '@mikro-orm/core';
 import { UserAttendEvent } from './UserAttendEvent';
 
 @Entity()
@@ -18,7 +10,6 @@ export class UserCommentEvent {
   @ManyToOne({
     entity: () => UserAttendEvent,
     fieldNames: ['user', 'event'],
-    onDelete: 'cascade',
   })
   attendEvent!: UserAttendEvent;
 

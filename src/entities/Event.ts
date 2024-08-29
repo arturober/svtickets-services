@@ -18,8 +18,6 @@ export class Event {
   @ManyToOne({
     entity: () => User,
     fieldName: 'creator',
-    onUpdateIntegrity: 'cascade',
-    onDelete: 'cascade',
     index: 'creator',
   })
   creator!: User;

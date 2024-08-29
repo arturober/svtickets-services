@@ -1,4 +1,4 @@
-import { Entity, ManyToOne, PrimaryKeyType, Property } from '@mikro-orm/core';
+import { Entity, ManyToOne, PrimaryKeyProp, Property } from '@mikro-orm/core';
 import { Event } from './Event';
 import { User } from './User';
 
@@ -7,8 +7,6 @@ export class UserAttendEvent {
   @ManyToOne({
     entity: () => User,
     fieldName: 'user',
-    onUpdateIntegrity: 'cascade',
-    onDelete: 'cascade',
     primary: true,
   })
   user!: User;
@@ -16,14 +14,12 @@ export class UserAttendEvent {
   @ManyToOne({
     entity: () => Event,
     fieldName: 'event',
-    onUpdateIntegrity: 'cascade',
-    onDelete: 'cascade',
     primary: true,
     index: 'user_attend_event_ibfk_2',
   })
   event!: Event;
 
-  [PrimaryKeyType]: [number, number];
+  [PrimaryKeyProp]: ['user', 'event'];
 
   @Property({ columnType: 'smallint' })
   tickets = 1;

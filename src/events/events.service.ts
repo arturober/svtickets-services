@@ -1,4 +1,4 @@
-import { EntityRepository, QueryOrder } from '@mikro-orm/core';
+import { EntityRepository, Populate, QueryOrder } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import {
   BadRequestException,
@@ -31,9 +31,12 @@ export class EventsService {
   private async getAndCheckEvent(
     authUser: User,
     id: number,
-    relations: string[] = []
+    relations: Populate<Event, any> = []
   ): Promise<Event> {
-    const event = await this.eventRepository.findOne({ id }, relations);
+    const event = await this.eventRepository.findOne(
+      { id },
+      { populate: relations }
+    );
     if (!event) {
       throw new NotFoundException('Event not found');
     }
@@ -52,7 +55,7 @@ export class EventsService {
     const event = new Event(createDto);
     event.creator = authUser;
 
-    await this.eventRepository.persistAndFlush(event);
+    await this.eventRepository.getEntityManager().persistAndFlush(event);
     return event;
   }
 
@@ -111,13 +114,13 @@ export class EventsService {
       );
     }
 
-    await this.eventRepository.persistAndFlush(event);
+    await this.eventRepository.getEntityManager().persistAndFlush(event);
     return event;
   }
 
   async remove(id: number, authUser: User) {
     const event = await this.getAndCheckEvent(authUser, id, ['creator']);
-    await this.eventRepository.removeAndFlush(event);
+    await this.eventRepository.getEntityManager().removeAndFlush(event);
   }
 
   async getAttendees(id: number) {
@@ -125,7 +128,7 @@ export class EventsService {
       { event: id },
       { populate: ['user'] }
     );
-    return attends.map((a) => a.user);
+    return attends.map((a) => a.user as User);
   }
 
   async postAttend(id: number, authUser: User) {
@@ -146,7 +149,7 @@ export class EventsService {
     const newAttend = new UserAttendEvent();
     newAttend.event = event;
     newAttend.user = authUser;
-    await this.attendRepository.persistAndFlush(newAttend);
+    await this.attendRepository.getEntityManager().persistAndFlush(newAttend);
     return { tickets: newAttend.tickets };
   }
 
@@ -160,7 +163,7 @@ export class EventsService {
       throw new NotFoundException('You are not attending this event');
     }
 
-    await this.attendRepository.removeAndFlush(attend);
+    await this.attendRepository.getEntityManager().removeAndFlush(attend);
   }
 
   async getComments(id: number) {
@@ -187,7 +190,7 @@ export class EventsService {
     comment.comment = commentDto.comment;
     comment.attendEvent = attend;
 
-    await this.commentRepository.persistAndFlush(comment);
+    await this.commentRepository.getEntityManager().persistAndFlush(comment);
     comment.date = new Date();
     return comment;
   }

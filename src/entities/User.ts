@@ -27,7 +27,7 @@ export class User {
   @Property({ columnType: 'double' })
   lng!: number;
 
-  @Property({ length: 200 })
+  @Property({ length: 200, nullable: true })
   @Exclude({ toPlainOnly: true })
   firebaseToken!: string;
 
