@@ -224,7 +224,19 @@ Todos los servicios de esta colección requieren del token de autenticación.
 
 ### **GET /events**
 
-Devuelve todos los eventos ordenados por distancia hasta el usuario autenticado. Ejemplo de respuesta de un evento:
+Puede recibir los siguientes **parámetros opcionales** en la lista de query params:
+- **order**: Campo para ordenar, puede tomar los valores *distance* (distancia al usuario, valor por defecto), *price* (precio) o *date* (fecha)
+- **search**: Trozo de texto para filtrar los que contengan dicho texto en el **título**
+- **page**: Página de resultados (por defecto 1)  
+
+**Ejemplo**: Eventos del 13 al 24 (página 2) que contengan la palabra fiesta y ordenados por precio -> */events?order=price&search=fiesta&page=2*
+
+Este servicio devuelve 12 resultados. Los eventos están en el campo **events** del resultado. También incluye los siguientes campos. 
+- **count**: Total de eventos que cumplen con los criterios
+- **page**: Página actual (devuelta)
+- **more** (booleano): Si hay más resultados (página + 1)  
+
+Ejemplo de respuesta de un evento:
 
 ```json
 {
@@ -235,7 +247,7 @@ Devuelve todos los eventos ordenados por distancia hasta el usuario autenticado.
                 "id": 13,
                 "name": "Testing",
                 "email": "testing@email.com",
-                "avatar": "http://localhost:3000:5009/img/users/1637329994765.jpg",
+                "avatar": "http://localhost:3000/img/users/1637329994765.jpg",
                 "lat": 38,
                 "lng": -0.5
             },
@@ -246,14 +258,17 @@ Devuelve todos los eventos ordenados por distancia hasta el usuario autenticado.
             "lat": 38.272348,
             "lng": -0.532826,
             "address": "Carrer Cristóbal Colón",
-            "image": "http://localhost:3000:5009/img/events/1636707297891.jpg",
+            "image": "http://localhost:3000/img/events/1636707297891.jpg",
             "numAttend": 4,
             "distance": 30.378314971923828,
             "attend": false,
             "mine": false
         },
         ...
-    ]
+    ],
+    "count": 23,
+    "page": 1,
+    "more": true
 }
 ```
 
