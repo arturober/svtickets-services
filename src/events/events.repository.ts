@@ -9,8 +9,9 @@ export class EventsRepository extends EntityRepository<Event> {
     idLogged = 1,
     where: QBFilterQuery<Event> = null,
     orderBy: QueryOrderMap<Event> = { distance: QueryOrder.ASC },
-    joins: Map<string, any> = null
-  ): Promise<Event[]> {
+    joins: Map<string, any> = null,
+    page = 1,
+  ): Promise<[Event[], number]> {
     let qb = this.em
       .createQueryBuilder(Event, 'e')
       .select([
@@ -35,7 +36,7 @@ export class EventsRepository extends EntityRepository<Event> {
       qb = qb.orderBy(orderBy);
     }
 
-    return qb.getResult();
+    return qb.limit(12).offset((page - 1)*12).getResultAndCount();
   }
 
   public findById(

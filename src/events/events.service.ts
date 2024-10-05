@@ -15,6 +15,7 @@ import { User } from 'src/entities/User';
 import { UserAttendEvent } from 'src/entities/UserAttendEvent';
 import { UserCommentEvent } from 'src/entities/UserCommentEvent';
 import { CreateCommentDto } from './dto/create-comment.dto';
+import { EventFindOptions } from './interfaces/event-find-options';
 
 @Injectable()
 export class EventsService {
@@ -59,29 +60,41 @@ export class EventsService {
     return event;
   }
 
-  async findAll(authUser: User) {
-    return this.eventRepository.findByDistance(
-      authUser.lat,
-      authUser.lng,
-      authUser.id
-    );
-  }
-
-  async findByUserCreator(authUser: User, idUser: number) {
+  async findAll(authUser: User, options: EventFindOptions) {
     return this.eventRepository.findByDistance(
       authUser.lat,
       authUser.lng,
       authUser.id,
-      { creator: idUser }
+      options.search ? { title: {$like: '%' + options.search + '%'} } : null,
+      {[options.order]: QueryOrder.ASC},
+      null,
+      options.page
     );
   }
 
-  async findByUserAttend(authUser: User, idUser: number) {
+  async findByUserCreator(authUser: User, idUser: number, options: EventFindOptions) {
+    const where = options.search ? { title: {$like: '%' + options.search + '%'} } : {};
     return this.eventRepository.findByDistance(
       authUser.lat,
       authUser.lng,
       authUser.id,
-      { usersAttend: { user: idUser } }
+      {...where, creator: idUser },
+      {[options.order]: QueryOrder.ASC},
+      null,
+      options.page
+    );
+  }
+
+  async findByUserAttend(authUser: User, idUser: number, options: EventFindOptions) {
+    const where = options.search ? { title: {$like: '%' + options.search + '%'} } : {};
+    return this.eventRepository.findByDistance(
+      authUser.lat,
+      authUser.lng,
+      authUser.id,
+      {...where, usersAttend: { user: idUser } },
+      {[options.order]: QueryOrder.ASC},
+      null,
+      options.page
     );
   }
 

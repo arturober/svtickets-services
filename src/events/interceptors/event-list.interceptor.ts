@@ -18,9 +18,10 @@ export class EventListInterceptor implements NestInterceptor {
       req.headers.host
     }/${this.configService.get<string>('basePath')}`; 
     return next.handle().pipe(
-      map((events: Event[]) => {
+      map((resp: {events: Event[]}) => {
         return {
-          events: events.map((e) => {
+          ...resp,
+          events: resp.events.map((e) => {
             if (!e.usersAttend.isInitialized) {
               delete e.usersAttend;
             }

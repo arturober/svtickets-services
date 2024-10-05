@@ -24,6 +24,8 @@ import { CommentListInterceptor } from './interceptors/comment-list.interceptor'
 import { CommentSingleInterceptor } from './interceptors/comment-single.interceptor';
 import { EventListInterceptor } from './interceptors/event-list.interceptor';
 import { EventSingleInterceptor } from './interceptors/event-single.interceptor';
+import { EventFindOptions } from './interfaces/event-find-options';
+import { Event } from 'src/entities/Event';
 
 @Controller('events')
 export class EventsController {
@@ -42,19 +44,42 @@ export class EventsController {
 
   @Get()
   @UseInterceptors(EventListInterceptor)
-  findAll(
+  async findAll(
     @AuthUser() authUser: User,
     @Query('creator', new DefaultValuePipe(0), ParseIntPipe)
     creator?: number,
     @Query('attending', new DefaultValuePipe(0), ParseIntPipe)
-    attending?: number
+    attending?: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe)
+    page?: number,
+    @Query('order', new DefaultValuePipe('distance'))
+    order?: string,
+    @Query('search', new DefaultValuePipe(null))
+    search?: string
   ) {
+    if(!['distance', 'price', 'date'].includes(order)) {
+      order = 'distance';
+    }
+    page = page < 1? 1 : page;
+    const options: EventFindOptions = {
+      page, order, search
+    }
+    let result: [Event[], number];
     if (creator) {
-      return this.eventsService.findByUserCreator(authUser, creator);
+      result = await this.eventsService.findByUserCreator(authUser, creator, options);
     } else if (attending) {
-      return this.eventsService.findByUserAttend(authUser, attending);
+      result = await this.eventsService.findByUserAttend(authUser, attending, options);
     } else {
-      return this.eventsService.findAll(authUser);
+      result = await this.eventsService.findAll(authUser, options);
+    }
+
+    const [events, count] = result;
+
+    return {
+      events,
+      count,
+      page,
+      more: page * 12 < count
     }
   }
 
