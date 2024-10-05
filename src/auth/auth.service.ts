@@ -1,7 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-import * as request from 'request-promise';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { ImageService } from '../commons/image/image.service';
@@ -15,6 +14,7 @@ import { EntityData, EntityRepository } from '@mikro-orm/core';
 import { TokenResponse } from './interfaces/token-response';
 import { RegisterResponse } from './interfaces/register-response';
 import { JwtService } from '@nestjs/jwt';
+import { URLSearchParams } from 'url';
 
 @Injectable()
 export class AuthService {
@@ -94,31 +94,24 @@ export class AuthService {
   }
 
   async loginFacebook(tokenDto: LoginTokenDto): Promise<TokenResponse> {
-    const options = {
-      method: 'GET',
-      uri: 'https://graph.facebook.com/me',
-      qs: {
-        access_token: tokenDto.token,
-        fields: 'id,name,email',
-      },
-      json: true,
-    };
-    const respUser = await request(options);
+    const url = 'https://graph.facebook.com/me?' + new URLSearchParams({
+      access_token: tokenDto.token,
+      fields: 'id,name,email',
+    });
+    const r = await fetch(url);
+    const respUser = await r.json() as {email: string, name: string};
 
     let user = await this.usersService.getUserbyEmail(respUser.email);
 
     if (!user) {
-      const optionsImg = {
-        method: 'GET',
-        uri: 'https://graph.facebook.com/me/picture',
-        qs: {
-          access_token: tokenDto.token,
-          type: 'large',
-        },
-        encoding: null,
-      };
-      const respImg = await request(optionsImg);
-      const avatar = await this.imageService.saveImageBinary('users', respImg);
+      const urlImg = 'https://graph.facebook.com/me/picture' + new URLSearchParams({
+        access_token: tokenDto.token,
+        type: 'large',
+      });
+
+      const rImg = await fetch(urlImg);
+      const respImg = await rImg.arrayBuffer();
+      const avatar = await this.imageService.saveImageBinary('users', new DataView(respImg));
       const user2: EntityData<User> = {
         email: respUser.email,
         name: respUser.name,

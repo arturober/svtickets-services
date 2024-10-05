@@ -1,4 +1,4 @@
-import { QueryOrder, QBFilterQuery, QueryOrderMap } from '@mikro-orm/core';
+import { QueryOrder, QBFilterQuery, QueryOrderMap, raw } from '@mikro-orm/core';
 import { EntityRepository } from '@mikro-orm/knex';
 import { Event } from 'src/entities/Event';
 
@@ -14,9 +14,9 @@ export class EventsRepository extends EntityRepository<Event> {
     let qb = this.em
       .createQueryBuilder(Event, 'e')
       .select([
-        'e.*',
-        `haversine(e.lat, e.lng, ${lat}, ${lng}) AS distance`,
-        `exists(SELECT 1 FROM user_attend_event uae WHERE uae.user = ${idLogged} AND uae.event = e.id) AS attend`,
+        '*',
+        raw(`haversine(e.lat, e.lng, ${lat}, ${lng}) AS distance`),
+        raw(`exists(SELECT 1 FROM user_attend_event uae WHERE uae.user = ${idLogged} AND uae.event = e.id) AS attend`),
       ])
       .joinAndSelect('e.creator', 'u');
 
@@ -47,9 +47,9 @@ export class EventsRepository extends EntityRepository<Event> {
     return this.em
       .createQueryBuilder(Event, 'e')
       .select([
-        'e.*',
-        `haversine(e.lat, e.lng, ${lat}, ${lng}) AS distance`,
-        `exists(SELECT 1 FROM user_attend_event uae WHERE uae.user = ${idLogged} AND uae.event = e.id) AS attend`,
+        '*',
+        raw(`haversine(e.lat, e.lng, ${lat}, ${lng}) AS distance`),
+        raw(`exists(SELECT 1 FROM user_attend_event uae WHERE uae.user = ${idLogged} AND uae.event = e.id) AS attend`),
       ])
       .joinAndSelect('e.creator', 'u')
       .where({ id: idEvent })

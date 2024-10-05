@@ -4,11 +4,14 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { map, Observable } from 'rxjs';
 import { UserCommentEvent } from 'src/entities/UserCommentEvent';
 
 @Injectable()
 export class CommentListInterceptor implements NestInterceptor {
+  constructor(private configService: ConfigService) {}
+
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const req = context.switchToHttp().getRequest();
     const baseUrl = req.protocol + '://' + req.headers.host + '/';

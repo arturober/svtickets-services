@@ -7,6 +7,8 @@ import { MikroOrmModule } from '@mikro-orm/nestjs';
 import mikroOrmConfig from './mikro-orm.config';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { ConfigModule } from '@nestjs/config';
+import configuration from './app.config';
 
 @Module({
   imports: [
@@ -17,6 +19,7 @@ import { UsersModule } from './users/users.module';
     EventsModule,
     CommonsModule,
     MikroOrmModule.forRoot(mikroOrmConfig),
+    ConfigModule.forRoot({ load: [configuration], isGlobal: true }),
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -10,7 +10,6 @@ import {
   ValidationPipe,
   BadRequestException,
   UseInterceptors,
-  ClassSerializerInterceptor,
   HttpCode,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -28,14 +27,14 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('me')
-  @UseInterceptors(UserResponseInterceptor, ClassSerializerInterceptor)
+  @UseInterceptors(UserResponseInterceptor)
   getCurrentUser(@AuthUser() authUser: User): User {
     authUser.me = true;
     return authUser;
   }
 
   @Get('name/:name')
-  @UseInterceptors(UserListInterceptor, ClassSerializerInterceptor)
+  @UseInterceptors(UserListInterceptor)
   async getUsersByName(
     @AuthUser() authUser: User,
     @Param('name') name: string
@@ -45,7 +44,7 @@ export class UsersController {
   }
 
   @Get(':id')
-  @UseInterceptors(UserResponseInterceptor, ClassSerializerInterceptor)
+  @UseInterceptors(UserResponseInterceptor)
   async getUser(
     @AuthUser() authUser: User,
     @Param('id', ParseIntPipe) id: number

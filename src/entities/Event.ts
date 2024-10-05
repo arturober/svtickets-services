@@ -1,6 +1,7 @@
 import {
   Collection,
   Entity,
+  EntityRepositoryType,
   ManyToOne,
   OneToMany,
   PrimaryKey,
@@ -9,9 +10,13 @@ import {
 import { CreateEventDto } from 'src/events/dto/create-event.dto';
 import { User } from './User';
 import { UserAttendEvent } from './UserAttendEvent';
+import { EventsRepository } from 'src/events/events.repository';
 
-@Entity()
+@Entity({ repository: () => EventsRepository })
 export class Event {
+
+  [EntityRepositoryType]?: EventsRepository;
+
   @PrimaryKey()
   id!: number;
 

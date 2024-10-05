@@ -19,7 +19,7 @@ export class ImageService {
     });
   }
 
-  saveImageBinary(dir: string, img: BinaryType): Promise<string> {
+  saveImageBinary(dir: string, img: NodeJS.ArrayBufferView): Promise<string> {
     const file = `${Date.now()}.jpg`;
     return new Promise((resolve, reject) => {
       const filePath = path.join('img', dir, file);

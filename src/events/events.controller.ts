@@ -1,38 +1,36 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Param,
-  Delete,
-  Put,
-  UseInterceptors,
-  HttpCode,
-  ClassSerializerInterceptor,
-  Query,
-  ParseIntPipe,
-  Optional,
+  Controller,
   DefaultValuePipe,
-  ValidationPipe,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  Query,
+  UseInterceptors,
+  ValidationPipe
 } from '@nestjs/common';
-import { EventsService } from './events.service';
+import { AuthUser } from 'src/auth/decorators/user.decorator';
+import { User } from 'src/entities/User';
+import { UserListInterceptor } from 'src/users/interceptors/user-list.interceptor';
+import { CreateCommentDto } from './dto/create-comment.dto';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
+import { EventsService } from './events.service';
+import { CommentListInterceptor } from './interceptors/comment-list.interceptor';
+import { CommentSingleInterceptor } from './interceptors/comment-single.interceptor';
 import { EventListInterceptor } from './interceptors/event-list.interceptor';
 import { EventSingleInterceptor } from './interceptors/event-single.interceptor';
-import { User } from 'src/entities/User';
-import { AuthUser } from 'src/auth/decorators/user.decorator';
-import { UserListInterceptor } from 'src/users/interceptors/user-list.interceptor';
-import { CommentListInterceptor } from './interceptors/comment-list.interceptor';
-import { CreateCommentDto } from './dto/create-comment.dto';
-import { CommentSingleInterceptor } from './interceptors/comment-single.interceptor';
 
 @Controller('events')
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
   @Post()
-  @UseInterceptors(EventSingleInterceptor, ClassSerializerInterceptor)
+  @UseInterceptors(EventSingleInterceptor)
   async create(
     @Body(new ValidationPipe({ transform: true, whitelist: true }))
     createEventDto: CreateEventDto,
@@ -43,7 +41,7 @@ export class EventsController {
   }
 
   @Get()
-  @UseInterceptors(EventListInterceptor, ClassSerializerInterceptor)
+  @UseInterceptors(EventListInterceptor)
   findAll(
     @AuthUser() authUser: User,
     @Query('creator', new DefaultValuePipe(0), ParseIntPipe)
@@ -61,13 +59,13 @@ export class EventsController {
   }
 
   @Get(':id')
-  @UseInterceptors(EventSingleInterceptor, ClassSerializerInterceptor)
+  @UseInterceptors(EventSingleInterceptor)
   findOne(@Param('id', ParseIntPipe) id: number, @AuthUser() authUser: User) {
     return this.eventsService.findOne(id, authUser);
   }
 
   @Put(':id')
-  @UseInterceptors(EventSingleInterceptor, ClassSerializerInterceptor)
+  @UseInterceptors(EventSingleInterceptor)
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body(new ValidationPipe({ transform: true, whitelist: true }))
@@ -85,7 +83,7 @@ export class EventsController {
   }
 
   @Get(':id/attend')
-  @UseInterceptors(UserListInterceptor, ClassSerializerInterceptor)
+  @UseInterceptors(UserListInterceptor)
   getAttendees(@Param('id', ParseIntPipe) id: number) {
     return this.eventsService.getAttendees(id);
   }
@@ -108,13 +106,13 @@ export class EventsController {
   }
 
   @Get(':id/comments')
-  @UseInterceptors(CommentListInterceptor, ClassSerializerInterceptor)
+  @UseInterceptors(CommentListInterceptor)
   getComments(@Param('id', ParseIntPipe) id: number) {
     return this.eventsService.getComments(id);
   }
 
   @Post(':id/comments')
-  @UseInterceptors(CommentSingleInterceptor, ClassSerializerInterceptor)
+  @UseInterceptors(CommentSingleInterceptor)
   postComment(
     @Param('id', ParseIntPipe) id: number,
     @AuthUser() authUser: User,
