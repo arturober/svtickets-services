@@ -27,7 +27,7 @@ export class EventListInterceptor implements NestInterceptor {
             }
             e.image = e.image && baseUrl + e.image;
             e.mine = e.creator.id === req.user.id;
-            if (e.creator?.avatar) {
+            if (e.creator?.avatar && !e.creator.avatar.startsWith('http')) {
               e.creator.avatar = baseUrl + e.creator.avatar;
             }
             return e;
