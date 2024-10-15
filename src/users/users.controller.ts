@@ -21,10 +21,14 @@ import { User } from 'src/entities/User';
 import { UserResponseInterceptor } from './interceptors/user-response.interceptor';
 import { Request } from 'express';
 import { UserListInterceptor } from './interceptors/user-list.interceptor';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private configService: ConfigService,
+  ) {}
 
   @Get('me')
   @UseInterceptors(UserResponseInterceptor)
@@ -37,7 +41,7 @@ export class UsersController {
   @UseInterceptors(UserListInterceptor)
   async getUsersByName(
     @AuthUser() authUser: User,
-    @Param('name') name: string
+    @Param('name') name: string,
   ): Promise<User[]> {
     const users = await this.usersService.getUsersByName(name);
     return users;
@@ -47,7 +51,7 @@ export class UsersController {
   @UseInterceptors(UserResponseInterceptor)
   async getUser(
     @AuthUser() authUser: User,
-    @Param('id', ParseIntPipe) id: number
+    @Param('id', ParseIntPipe) id: number,
   ): Promise<User> {
     try {
       const user = await this.usersService.getUser(id);
@@ -63,7 +67,7 @@ export class UsersController {
   async updateUserInfo(
     @AuthUser() authUser: User,
     @Body(new ValidationPipe({ transform: true, whitelist: true }))
-    userDto: UpdateUserDto
+    userDto: UpdateUserDto,
   ): Promise<void> {
     try {
       await this.usersService.updateUserInfo(authUser.id, userDto);
@@ -82,7 +86,7 @@ export class UsersController {
   async updatePassword(
     @AuthUser() authUser: User,
     @Body(new ValidationPipe({ transform: true, whitelist: true }))
-    passDto: UpdatePasswordDto
+    passDto: UpdatePasswordDto,
   ): Promise<void> {
     try {
       await this.usersService.updatePassword(authUser.id, passDto);
@@ -96,11 +100,14 @@ export class UsersController {
     @AuthUser() authUser: User,
     @Body(new ValidationPipe({ transform: true, whitelist: true }))
     photoDto: UpdatePhotoDto,
-    @Req() req: Request
+    @Req() req: Request,
   ) {
+    const baseUrl = `${this.configService.get<string>('protocol')}://${
+      req.headers.host
+    }/${this.configService.get<string>('basePath')}`;
     try {
       const avatar = await this.usersService.updatePhoto(authUser.id, photoDto);
-      return { avatar: req.protocol + '://' + req.headers.host + '/' + avatar };
+      return { avatar: baseUrl + avatar };
     } catch (e) {
       throw new NotFoundException();
     }

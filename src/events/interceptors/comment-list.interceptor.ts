@@ -14,7 +14,10 @@ export class CommentListInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const req = context.switchToHttp().getRequest();
-    const baseUrl = req.protocol + '://' + req.headers.host + '/';
+    const baseUrl = `${this.configService.get<string>('protocol')}://${
+      req.headers.host
+    }/${this.configService.get<string>('basePath')}`; 
+
     return next.handle().pipe(
       map((comments: UserCommentEvent[]) => {
         return {
@@ -25,7 +28,7 @@ export class CommentListInterceptor implements NestInterceptor {
               date: c.date,
               user: {
                 ...c.attendEvent.user,
-                avatar: baseUrl + c.attendEvent.user.avatar,
+                avatar: (c.attendEvent.user.avatar.startsWith('http') ? "" : baseUrl) + c.attendEvent.user.avatar,
               },
             };
           }),
