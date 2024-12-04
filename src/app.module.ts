@@ -13,7 +13,7 @@ import configuration from './app.config';
 @Module({
   imports: [
     AuthModule.forRoot({
-      googleId: '746820501392-oalflicqch2kuc12s8rclb5rf7b1fist.apps.googleusercontent.com',
+      googleId: configuration().google_id,
     }),
     UsersModule,
     EventsModule,

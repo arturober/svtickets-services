@@ -6,4 +6,5 @@ export default () => ({
       host: process.env.DATABASE_HOST || 'localhost',
       port: parseInt(process.env.DATABASE_PORT, 10) || 3306,
     },
+    google_id: process.env.GOOGLE_ID || '',
 });
