@@ -75,6 +75,8 @@ export class AuthService {
         email,
         name: payload.name,
         avatar,
+        lat: tokenDto.lat ?? 0,
+        lng: tokenDto.lng ?? 0
       };
       await this.userRepo.insert(user2);
       user = await this.usersService.getUserbyEmail(email);
@@ -116,6 +118,8 @@ export class AuthService {
         email: respUser.email,
         name: respUser.name,
         avatar,
+        lat: tokenDto.lat ?? 0,
+        lng: tokenDto.lng ?? 0
       };
       await this.userRepo.insert(user2);
       user = await this.usersService.getUserbyEmail(respUser.email);
