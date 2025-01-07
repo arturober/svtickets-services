@@ -114,7 +114,9 @@ export class EventsService {
   async update(id: number, updateEventDto: UpdateEventDto, authUser: User) {
     const event = await this.getAndCheckEvent(authUser, id, ['creator']);
     for (const prop in updateEventDto) {
-      event[prop] = updateEventDto[prop];
+      if(prop !== "image") {
+        event[prop] = updateEventDto[prop];
+      }
     }
     if (updateEventDto.image && !updateEventDto.image.startsWith('http')) {
       event.image = await this.imageService.saveImage(
