@@ -22,7 +22,7 @@ export class EventSingleInterceptor implements NestInterceptor {
         if (!e.usersAttend.isInitialized) {
           delete e.usersAttend;
         }
-        e.image = e.image && baseUrl + e.image;
+        e.image = e.image && !e.image.startsWith('http') ? baseUrl + e.image : e.image;
         e.mine = e.creator.id === req.user.id;
         if (e.creator?.avatar) {
           e.creator.avatar = baseUrl + e.creator.avatar;
