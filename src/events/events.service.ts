@@ -16,6 +16,7 @@ import { UserAttendEvent } from 'src/entities/UserAttendEvent';
 import { UserCommentEvent } from 'src/entities/UserCommentEvent';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { EventFindOptions } from './interfaces/event-find-options';
+import { FirebaseService } from 'src/commons/firebase/firebase.service';
 
 @Injectable()
 export class EventsService {
@@ -26,7 +27,8 @@ export class EventsService {
     private readonly attendRepository: EntityRepository<UserAttendEvent>,
     @InjectRepository(UserCommentEvent)
     private readonly commentRepository: EntityRepository<UserCommentEvent>,
-    private readonly imageService: ImageService
+    private readonly imageService: ImageService,
+    private readonly firebaseService: FirebaseService,
   ) {}
 
   private async getAndCheckEvent(
@@ -203,6 +205,18 @@ export class EventsService {
 
     await this.commentRepository.getEntityManager().persistAndFlush(comment);
     comment.date = new Date();
+
+    const event = await this.eventRepository.findOne(id, { populate: ['creator']});
+
+    if (event.creator.firebaseToken) {
+      await this.firebaseService.sendMessage(
+        event.creator.firebaseToken,
+        'You have a new comment!',
+        `${authUser.name} has commented ${event.title}`,
+        { eventId: '' + event.id },
+      );
+    }
+
     return comment;
   }
 }

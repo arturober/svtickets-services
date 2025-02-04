@@ -39,3 +39,5 @@ img/events/*
 img/users/*
 !img/events/.gitkeep
 !img/users/.gitkeep
+
+firebase/serviceAccountKey.json
